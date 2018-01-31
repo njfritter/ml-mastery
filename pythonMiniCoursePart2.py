@@ -91,12 +91,12 @@ def part_six():
 		try:
 			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
 		except AttributeError:
-			print("The %s model cannot perform cross validation with the LogLoss scoring metric" % name)
+			print("The %s model cannot perform cross validation with the ROC scoring metric" % name)
 		results.append(result)
 		names.append(name)
 		print("\nROC value of %s model:\n %.3f (+\-%.3f)" % (name, result.mean(), result.std()))	
 
-	# Confusion Matrix (need to do separate training and evaluation process)
+	# Classification report & Confusion Matrix (need to do separate training and evaluation process)
 	for name, model in models:
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
@@ -105,7 +105,7 @@ def part_six():
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 
-	# Classification report & ROC Curve
+	# ROC Curve
 	for name, model in models:
 
 		# ROC Curves require probabilites
@@ -377,8 +377,8 @@ def part_nine():
 	# Prepare models
 	n_trees = 100
 	models = []
-	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Random Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
+	models.append(('Logistic_Regression', linear_model.LogisticRegression(random_state = 1)))
+	models.append(('Random_Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
 
 	# Train models and save to disk
 	for name, model in models:
