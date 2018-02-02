@@ -6,18 +6,18 @@
 ##
 #
 
-# The data used to train a model should not be used to make predictions
+# The data used to train a model should not be used to make predictions on itself
 # Because the point is to make predictions on new data it hasn't seen
 # To see how well it can generalize
-# To get around this we use resampling methods to split the data into training & testing sets
+# To do this we use resampling methods to split the data into training & testing sets
 # Then fit a model and evauate its performance
 
 """
 Methods for Re-sampling data
 1. Split data once into training and testing sets
-2. Use k-fold cross-validation to create k different train test splits & k different models
+2. Use k-fold cross-validation to create k different train test splits to train k different models
 3. Use leave one out cross-validation where every data point is held out once
-with the rest of the data used to fit a model (thus n models created, each trained on n - 1 data points)
+using the rest of the data used to fit a model (thus n models created, each trained on n - 1 data points)
 
 Methods for Evaluating Algorithm Metrics
 1. Accuracy and LogLoss metrics for classdification
@@ -29,34 +29,30 @@ Methods for Evaluating Algorithm Metrics
 import numpy as np
 import pandas as pd
 import sys
-from sklearn import model_selection
-from sklearn import linear_model
-from sklearn import metrics
-from sklearn import discriminant_analysis
-from sklearn import neural_network
-from sklearn import tree
-from sklearn import svm
-from sklearn import naive_bayes
+from sklearn import (model_selection, linear_model, metrics, discriminant_analysis,
+neural_network, tree, svm, naive_bayes)
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
 columns = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
 
+# Read in data and split up so we don't do this over and over
+data = pd.read_csv(url, names = columns)
+array = data.values
+
+# Separate into input and output components
+X = array[:, 0:8]
+Y = array[:, 8]	
+
+# Train test split for evaluation metrics
+X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
+X, Y, test_size = 0.33, random_state = 42)
+
+
 def part_six():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
-	data = pd.read_csv(url, names = columns)
-	array = data.values
 
-	# Separate into input and output components
-	X = array[:, 0:8]
-	Y = array[:, 8]	
-
-	# Train test split for evaluation metrics
-	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
-	X, Y, test_size = 0.33, random_state = 42)
-
-	# Prepare models
 	models = []
 
 	# Simpler models
@@ -68,35 +64,29 @@ def part_six():
 	# More complex models	
 	models.append(('Neural Network', neural_network.MLPClassifier(random_state = 1)))
 	models.append(('Ridge Classifier', linear_model.RidgeClassifier(random_state = 1)))
-	models.append(('SGD Classifier', linear_model.SGDClassifier(max_iter = 5, tol = None, random_state = 1)))
+	models.append(('SGD Classifier', linear_model.SGDClassifier(max_iter = 5, 
+		tol = None, random_state = 1)))
 	models.append(('Support Vector Machine', svm.LinearSVC(random_state = 1)))
 	
 	# Fit & evaluate models
-	results = []
-	names = []
 	for name, model in models:
+		# First accuracy
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
 		scoring = 'accuracy'
 		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		results.append(result)
-		names.append(name)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" % (name, result.mean() * 100.0, result.std() * 100.0))
+		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
+			% (name, result.mean() * 100.0, result.std() * 100.0))
 
-	# Fit model with evaulation metric LogLoss
-	results = []
-	names = []
-	for name, model in models:
+		# Nowevaulation metric AUC
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
 		scoring = 'roc_auc'
 		try:
 			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
 		except AttributeError:
-			print("The %s model cannot perform cross validation with the ROC scoring metric" % name)
-		results.append(result)
-		names.append(name)
+			print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
 		print("\nROC value of %s model:\n %.3f (+\-%.3f)" % (name, result.mean(), result.std()))	
 
-	# Classification report & Confusion Matrix (need to do separate training and evaluation process)
+	# Classification report & Confusion Matrix (needs separate training and evaluation process)
 	for name, model in models:
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
@@ -105,9 +95,7 @@ def part_six():
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 
-	# ROC Curve
-	for name, model in models:
-
+		# ROC Curve
 		# ROC Curves require probabilites
 		try:
 			Y_prob = model.predict_proba(X_test)
@@ -118,14 +106,12 @@ def part_six():
 		except: 
 			print("This cannot be done")
 
-
 	""" 
 	The best models from here were:
 	1. Logistic Regression
 	2. Linear Discriminant Analysis
 	3. Ridge Classifier
 	"""
-
 
 #
 ##
@@ -136,11 +122,12 @@ def part_six():
 #
 
 # The part before had us training single models for evaluation
-# While one can stop here, one can also combine the predictions from multiple models
+# This is usually sufficient, but one can also combine predictions from multiple equivalent models
 # Some models are built in with this capacity, e.g:
 # Random Forest for bagging, Stochastic Gradient Boosting for Boosting
 # Another type of ensemble is called voting
 # Where the predictions from multiple different models are combined
+# This will be done in the next part
 
 from sklearn import ensemble
 import matplotlib as mpl
@@ -148,53 +135,36 @@ mpl.use('TkAgg')
 from matplotlib import pyplot as plt
 def part_seven():
 	# Here let's implement some ensemble methods to potentially improve accuracy
-	data = pd.read_csv(url, names = columns)
-	array = data.values
+	# And get a better idea of the inherent structure of the data
 
-	# Separate into input and output components
-	X = array[:, 0:8]
-	Y = array[:, 8]	
-
-	# Train test split for evaluation metrics
-	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
-	X, Y, test_size = 0.33, random_state = 42)
-
-	# Prepare models
 	models = []
 	# Boosting ensembles
 	models.append(('Gradient Boosted Machine', ensemble.GradientBoostingClassifier(random_state = 1)))
 	models.append(('AdaBoost Classifier', ensemble.AdaBoostClassifier(random_state = 1)))
 
 	# Bagging Ensembles
-	# Even though the decision tree didn't do so well, maybe a random forest might?
+	# Even though the decision tree didn't do so well, a random forest might
 	n_trees = 100
 	models.append(('Random Forest', ensemble.RandomForestClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)))
 	models.append(('Extra Trees Classifier', ensemble.ExtraTreesClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)))
 
 	# Fit & evaluate models
-	results = []
-	names = []
 	for name, model in models:
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
 		scoring = 'accuracy'
 		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		results.append(result)
-		names.append(name)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" % (name, result.mean() * 100.0, result.std() * 100.0))
+		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
+			% (name, result.mean() * 100.0, result.std() * 100.0))
 
-	# Fit model with evaulation metric LogLoss
-	results = []
-	names = []
-	for name, model in models:
+		# Fit model with evaulation metric AUC
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
 		scoring = 'roc_auc'
 		try:
 			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
 		except AttributeError:
-			print("The %s model cannot perform cross validation with the LogLoss scoring metric" % name)
-		results.append(result)
-		names.append(name)
-		print("\nROC value of %s model:\n %.3f (+\-%.3f)" % (name, result.mean(), result.std()))	
+			print("The %s model cannot perform cross validation with the %s scoring metric" % (name, scoring))
+		print("\nROC value of %s model:\n %.3f (+\-%.3f)" 
+			% (name, result.mean(), result.std()))	
 
 	# Classification report, Confusion Matrix, Feature Importance (need to do separate training and evaluation process)
 	for name, model in models:
@@ -218,8 +188,6 @@ def part_seven():
 		plt.xlim([-1, X.shape[1]])
 		plt.show()
 
-	# ROC Curve
-	for name, model in models:
 
 		# ROC Curves require probabilites
 		try:
@@ -260,19 +228,9 @@ def part_seven():
 # All will be attempted
 
 def part_eight():
-	# Last but not least, let's try to combine some of these models for better predictive performance
-	data = pd.read_csv(url, names = columns)
-	array = data.values
+	# Last but not least, let's combine some of these models 
+	# To try for better predictive performance
 
-	# Separate into input and output components
-	X = array[:, 0:8]
-	Y = array[:, 8]	
-
-	# Train test split for evaluation metrics
-	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
-	X, Y, test_size = 0.33, random_state = 42)
-
-	# Prepare models
 	n_trees = 100
 	models = []
 
@@ -301,29 +259,22 @@ def part_eight():
 
 
 	# Fit & evaluate models
-	results = []
-	names = []
 	for name, model in models:
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
 		scoring = 'accuracy'
 		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		results.append(result)
-		names.append(name)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" % (name, result.mean() * 100.0, result.std() * 100.0))
+		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
+			% (name, result.mean() * 100.0, result.std() * 100.0))
 
-	# Fit model with evaulation metric LogLoss
-	results = []
-	names = []
-	for name, model in models:
+		# Fit model with evaulation metric AUC
 		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
 		scoring = 'roc_auc'
 		try:
 			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
 		except AttributeError:
-			print("The %s model cannot perform cross validation with the LogLoss scoring metric" % name)
-		results.append(result)
-		names.append(name)
-		print("\nROC value of %s model:\n %.3f (+\-%.3f)" % (name, result.mean(), result.std()))	
+			print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+		print("\nROC value of %s model:\n %.3f (+\-%.3f)" 
+			% (name, result.mean(), result.std()))	
 
 	# Classification report & Confusion Matrix (need to do separate training and evaluation process)
 	for name, model in models:
@@ -333,9 +284,6 @@ def part_eight():
 		class_report = metrics.classification_report(Y_test, Y_pred)
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
-
-	# ROC Curve
-	for name, model in models:
 
 		# ROC Curves require probabilites
 		try:
@@ -363,18 +311,7 @@ def part_eight():
 # Let's do Logistic Regression and a Random Forest
 import pickle
 def part_nine():
-	data = pd.read_csv(url, names = columns)
-	array = data.values
 
-	# Separate into input and output components
-	X = array[:, 0:8]
-	Y = array[:, 8]	
-
-	# Train test split for evaluation metrics
-	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
-	X, Y, test_size = 0.33, random_state = 42)
-
-	# Prepare models
 	n_trees = 100
 	models = []
 	models.append(('Logistic_Regression', linear_model.LogisticRegression(random_state = 1)))

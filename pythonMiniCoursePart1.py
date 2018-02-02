@@ -31,7 +31,7 @@ def part_one():
 #
 ##
 ###
-#### PART TWO: Loading in data from CSV (Pima Indians onset of diabetes dataset from UCI ML repo)
+#### PART TWO: Loading in data from CSV (Pima Indians onset of diabetes dataset, UCI ML repo)
 ###
 ##
 #
@@ -44,37 +44,43 @@ import urllib
 import codecs
 
 def part_two():
+	datas = []
 	# Method one: Pandas read_csv() function
 	print("\nLoading in data via the read_csv method in pandas using a url\n")
 	data = pd.read_csv(url, names = columns)
-	print("\nHere is the shape of the data:\n", data.shape)
-	print("\nHere is the head of the data:\n", data.head(10))
-	print("\nHere is the tail of the data:\n", data.tail(10))
+	datas.append(('Method 1',data))
 
 	# Method two: use Numpy's loadtxt() method
 	# Make sure to specify the delimiter, otherwise it throws an error
 	print("\nLoading in data via the loadtxt method in numpy using a url\n")
 	data = np.loadtxt(url, dtype = float, delimiter = ',')
-	print("\nHere is the shape of the data:\n", data.shape)
-	print("\nHere is the head of the data:\n", data[0:9,])
-	print("\nHere is the tail of the data:\n", data[0:9,])
+	datas.append(('Method 2', data))
 
 	# Method three: Load in using csv.reader() function
 	# Since the original method can only read it physical csvs
 	# We need to include the urllib.request.urlopen() method for the url
-
-
-	# In order to properly load in the data, we need to create a generator object using codecs
+	# THEN, to properly load the data, we need to create a generator object using codecs
 	# Then convert to a list, THEN to a DataFrame in pandas
 	# Having fun yet?
 	print("\nLoading in data via the csv.reader() method using a url\n")
 	response = urllib.request.urlopen(url)
 	data = csv.reader(codecs.iterdecode(response, 'utf-8'))
 	new_data = pd.DataFrame(list(data), columns = columns)
+	datas.append(('Method 3', new_data))
 
-	print("\nHere is the shape of the data:\n", new_data.shape)
-	print("\nHere is the head of the data:\n", new_data.head(10))
-	print("\nHere is the tail of the data:\n", new_data.tail(10))
+
+	for method, data in datas:
+		# For methods 1 and 3
+		try:
+			print("\nHere is the shape of the data for %s:\n" %(method), data.shape)
+			print("\nHere is the head of the data for %s:\n" %(method), data.head(10))
+			print("\nHere is the tail of the data for %s:\n" %(method), data.tail(10))
+
+		# For method 2
+		except AttributeError:	
+			print("\nHere is the shape of the data for %s:\n" %(method), data.shape)
+			print("\nHere is the head of the data for %s:\n" %(method), data[0:9,])
+			print("\nHere is the tail of the data for %s:\n" %(method), data[0:9,])
 
 
 #
@@ -86,7 +92,7 @@ def part_two():
 #
 
 # Now we must look further into the data to see what it is telling us
-# The shape and head/tail were already printed out for each data read in earlier
+# The shape and head/tail were already printed out in Part 2
 # Now lets go more in depth
 # And also add graphs!
 
@@ -103,14 +109,19 @@ def part_three():
 	print("\nSummary statistics for each variable:\n", description)
 	print("\nData types of the variables:\n", data_types)
 	print("\nPairwise correlation between variables:\n", correlation)
+	
 	# One way to show distribution of data
 	# Not great, better method shown in next part
+	# Originally had this part shown
+	# Commenting out because while it does the job
+	# The next part is better
+	"""
 	for column in data.select_dtypes(include = int): 
 		freq = data[column].value_counts().sort_index()
 		print("\nFrequency of the column {} with graph:\n".format(column), freq)
 		freq.plot(kind = 'bar')
 		plt.show()
-
+	"""
 
 #
 ##
@@ -146,7 +157,8 @@ def part_four():
 ##
 #
 
-# One's data may not be in the best shape for modeling; sometimes need to make transformations 
+# One's data may not be in the best shape for modeling
+# Sometimes transformations are needed 
 # In order to best present the inherent structure of the data to the model
 # Scikit learn provides two standards for transforming data (useful in different cases)
 # They are "Fit and Multiple Transform" and "Combined Fit-and-Transform"

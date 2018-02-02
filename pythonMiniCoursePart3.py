@@ -14,14 +14,9 @@
 import numpy as np
 import pandas as pd
 import sys
-from sklearn import preprocessing
-from sklearn import model_selection
-from sklearn import linear_model
-from sklearn import metrics
-from sklearn import neighbors
-from sklearn import neural_network
-from sklearn import svm
-from sklearn import ensemble
+from sklearn import (preprocessing, model_selection, linear_model, 
+	metrics, neighbors, neural_network, svm, ensemble
+	)
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
@@ -32,7 +27,6 @@ def part_ten():
 	# This works best for iterative models that converge to their fitted parameter values
 	# I.e. approach the limits of parameter values as the iterations increase
 	# Examples are: GLM, Neural Network, ...
-	# So let's train those
 	data = pd.read_csv(url, names = columns)
 	array = data.values
 
