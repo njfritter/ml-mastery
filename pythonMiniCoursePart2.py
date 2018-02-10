@@ -52,7 +52,6 @@ X, Y, test_size = 0.33, random_state = 42)
 def part_six():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
-
 	models = []
 
 	# Simpler models
@@ -145,7 +144,7 @@ def part_seven():
 	# Bagging Ensembles
 	# Even though the decision tree didn't do so well, a random forest might
 	n_trees = 100
-	models.append(('Random Forest', ensemble.RandomForestClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)))
+	models.append(('Random Forest', ensemble.RandomForestClassifier(n_estimators = n_trees,	max_features = 3, random_state = 1)))
 	models.append(('Extra Trees Classifier', ensemble.ExtraTreesClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)))
 
 	# Fit & evaluate models
@@ -192,7 +191,7 @@ def part_seven():
 		# ROC Curves require probabilites
 		try:
 			Y_prob = model.predict_proba(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(Y_test, Y_prob)
+			fpr, tpr, _ = metrics.roc_curve(Y_test, Y_prob)
 			print("\nFalse Positive Rate for %s model:\n" % (name), fpr)
 			print("\nTrue Positive Rate for %s model:\n" % (name), tpr)
 			print("\nThreshold for %s model:\n" % (name), threshold)
@@ -247,10 +246,10 @@ def part_eight():
 	# Number 2: Soft Vote (Argmax of sums of predicted probabilities used)
 	# Recommended for ensemble of well-calibrated classifiers
 	models.append(('Voting Classifier 2', ensemble.VotingClassifier(estimators = [
-		('lr', linear_model.LogisticRegression(random_state = 1)),
-		#('lda', discriminant_analysis.LinearDiscriminantAnalysis()),
-		('gbm', ensemble.GradientBoostingClassifier(random_state = 1)),
-		#('rf', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3))
+		#('lr', linear_model.LogisticRegression(random_state = 1)),
+		('lda', discriminant_analysis.LinearDiscriminantAnalysis()),
+		#('gbm', ensemble.GradientBoostingClassifier(random_state = 1)),
+		('rf', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3))
 		#('rr', linear_model.RidgeClassifier(random_state = 1))
 		], voting = 'soft')))
 

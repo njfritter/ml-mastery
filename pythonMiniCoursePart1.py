@@ -99,17 +99,31 @@ def part_two():
 import matplotlib as mpl
 mpl.use('TkAgg')
 from matplotlib import pyplot as plt
+import seaborn as sns
 def part_three():
 
 	data = pd.read_csv(url, names = columns)
+	# Remove class: Not necessary or meaningful here
+	# data = data.iloc[:, 0:8]
 	description = data.describe()
 	data_types = data.dtypes
-	correlation = data.corr()
+	correlation = data.corr(method = 'pearson')
 	
 	print("\nSummary statistics for each variable:\n", description)
 	print("\nData types of the variables:\n", data_types)
-	print("\nPairwise correlation between variables:\n", correlation)
+
+	# Heatmap of correlations
+	f, ax = plt.subplots(figsize = (11, 9))
 	
+	# Using custom diverging colormap
+	c_map = sns.diverging_palette(100, 200, as_cmap = True)
+
+	# Draw heatmap with mask and correct ascept ratio
+	sns.heatmap(correlation, cmap = c_map, square = True,
+		xticklabels = True, yticklabels = True,
+		linewidths = 0.5, cbar_kws = {"shrink": 0.5}, ax = ax)
+	plt.show()
+
 	# One way to show distribution of data
 	# Not great, better method shown in next part
 	# Originally had this part shown
@@ -140,14 +154,35 @@ def part_four():
 	graph = pd.plotting.scatter_matrix(data)
 	plt.show()
 
+	# Now try through Seaborn
+	# Scatterplot matrix
+	cols = data.columns.values
+	sns.pairplot(data, 
+		x_vars = cols,
+		y_vars = cols,
+		hue = 'class',
+		palette = ('Red', 'Blue'),
+		markers = ["o", "D"])
+	plt.show()
+
 	# Box and whisker plot
 	data.plot(kind = 'box')
 	plt.show()
 
+	# Seaborn
+	f , ax = plt.subplots(figsize = (11, 20))
+
+	ax.set_facecolor('#fafafa')
+	ax.set(xlim = (-0.05, 50))
+	plt.ylabel('Dependent Variables')
+	plt.title("Box Plot of Pre-Processed Variables")
+	ax = sns.boxplot(data = data, orient = 'h', palette = 'Set2')
+	plt.show()
+
+
 	# Histogram (better version of frequency counts; shows all at once)
 	data.hist()
 	plt.show()
-
 
 #
 ##
