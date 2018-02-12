@@ -1,4 +1,4 @@
-# ML Mastery Python MiniCourse!! Woo
+# ML Mastery Python MiniCourse
 # General style for python:
 # snake_case for functions and variables, PascalCase for classes
 

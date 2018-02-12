@@ -29,7 +29,7 @@ Feel free to clone the repo, make a branch, leave comments or contribute in any 
 		+ This turns on the virtual environment and puts you in it
 	+ `pip3 install -r requirements.txt`
 		+ Installs every python package listed in the requirements.txt file
-	+ `python3 miniCourse.py *number*
+	+ `python3 miniCourse.py *number*`
 		+ Examine the code and replace *number* with whichever part you'd like to run
 
 ### Contributing

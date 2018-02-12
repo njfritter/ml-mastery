@@ -6,9 +6,8 @@
 ##
 #
 
-# The data used to train a model should not be used to make predictions on itself
-# Because the point is to make predictions on new data it hasn't seen
-# To see how well it can generalize
+# The data used to train a model should not be then predicted using the model
+# Because the point is to make predictions on unseen data to see how well it generalizes
 # To do this we use resampling methods to split the data into training & testing sets
 # Then fit a model and evauate its performance
 
@@ -16,15 +15,14 @@
 Methods for Re-sampling data
 1. Split data once into training and testing sets
 2. Use k-fold cross-validation to create k different train test splits to train k different models
-3. Use leave one out cross-validation where every data point is held out once
-using the rest of the data used to fit a model (thus n models created, each trained on n - 1 data points)
+3. Use leave one out cross-validation: every data point is held out once with the rest of the data used to fit a model 
+	a. Thus n models created, with each trained on n - 1 data points
 
 Methods for Evaluating Algorithm Metrics
 1. Accuracy and LogLoss metrics for classdification
 2. Generation of confusion matric and classification report
 3. Root Mean Square Error (RMSE) and R squared matrics for regression
 """
-
 
 import numpy as np
 import pandas as pd
@@ -48,7 +46,6 @@ Y = array[:, 8]
 X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
 X, Y, test_size = 0.33, random_state = 42)
 
-
 def part_six():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
@@ -69,24 +66,20 @@ def part_six():
 	
 	# Fit & evaluate models
 	for name, model in models:
-		# First accuracy
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-		scoring = 'accuracy'
-		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
-			% (name, result.mean() * 100.0, result.std() * 100.0))
+		# Different model metrics
+		for scoring in ('accuracy', 'roc_auc'):
+			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
+			try:
+				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
+			except AttributeError:
+				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+			if scoring == 'accuracy':
+				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
+				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
+			else:
+				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
 
-		# Nowevaulation metric AUC
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-		scoring = 'roc_auc'
-		try:
-			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		except AttributeError:
-			print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-		print("\nROC value of %s model:\n %.3f (+\-%.3f)" % (name, result.mean(), result.std()))	
-
-	# Classification report & Confusion Matrix (needs separate training and evaluation process)
-	for name, model in models:
+		# Classification report & Confusion Matrix (needs separate training and evaluation process)
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
 		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
@@ -94,16 +87,26 @@ def part_six():
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 
-		# ROC Curve
-		# ROC Curves require probabilites
+		# ROC Curves
 		try:
-			Y_prob = model.predict_proba(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(Y_test, Y_prob)
-			print("\nFalse Positive Rate for %s model:\n" % (name), fpr)
-			print("\nTrue Positive Rate for %s model:\n" % (name), tpr)
-			print("\nThreshold for %s model:\n" % (name), threshold)
+			Y_prob = model.predict(X_test)
+			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
+			roc_auc = metrics.auc(fpr, tpr)
+			
+			plt.title('Receiver Operating Characteristic')
+			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+			plt.legend(loc = 'lower right')
+			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
+			plt.plot([0,0], [1,0], 'k--', color = 'black')
+			plt.plot([1,0], [1,1], 'k--', color = 'black')
+			plt.xlim([-0.1, 1.1])
+			plt.ylim([-0.1, 1.1])
+			plt.xlabel('False Positive Rate')
+			plt.ylabel('True Positive Rate')
+			plt.show()
 		except: 
-			print("This cannot be done")
+			print("The %s model does not support the \"predict\" method" % name)
+
 
 	""" 
 	The best models from here were:
@@ -149,24 +152,20 @@ def part_seven():
 
 	# Fit & evaluate models
 	for name, model in models:
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
-		scoring = 'accuracy'
-		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
-			% (name, result.mean() * 100.0, result.std() * 100.0))
+		# Different model metrics
+		for scoring in ('accuracy', 'roc_auc'):
+			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
+			try:
+				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
+			except AttributeError:
+				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+			if scoring == 'accuracy':
+				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
+				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
+			else:
+				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
 
-		# Fit model with evaulation metric AUC
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
-		scoring = 'roc_auc'
-		try:
-			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		except AttributeError:
-			print("The %s model cannot perform cross validation with the %s scoring metric" % (name, scoring))
-		print("\nROC value of %s model:\n %.3f (+\-%.3f)" 
-			% (name, result.mean(), result.std()))	
-
-	# Classification report, Confusion Matrix, Feature Importance (need to do separate training and evaluation process)
-	for name, model in models:
+		# Classification report, Confusion Matrix, Feature Importance (need to do separate training and evaluation process)
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
 		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
@@ -188,18 +187,25 @@ def part_seven():
 		plt.show()
 
 
-		# ROC Curves require probabilites
+		# ROC Curves
 		try:
-			Y_prob = model.predict_proba(X_test)
-			fpr, tpr, _ = metrics.roc_curve(Y_test, Y_prob)
-			print("\nFalse Positive Rate for %s model:\n" % (name), fpr)
-			print("\nTrue Positive Rate for %s model:\n" % (name), tpr)
-			print("\nThreshold for %s model:\n" % (name), threshold)
+			Y_prob = model.predict(X_test)
+			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
+			roc_auc = metrics.auc(fpr, tpr)
+			
+			plt.title('Receiver Operating Characteristic')
+			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+			plt.legend(loc = 'lower right')
+			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
+			plt.plot([0,0], [1,0], 'k--', color = 'black')
+			plt.plot([1,0], [1,1], 'k--', color = 'black')
+			plt.xlim([-0.1, 1.1])
+			plt.ylim([-0.1, 1.1])
+			plt.xlabel('False Positive Rate')
+			plt.ylabel('True Positive Rate')
+			plt.show()
 		except: 
-			print("This cannot be done")
-
-
-
+			print("The %s model does not support the \"predict\" method" % name)
 
 	"""
 	All of them achieve pretty much the same results as the simpler models
@@ -215,7 +221,6 @@ def part_seven():
 ###
 ##
 #
-
 
 # Technically this is an emsemble method, but I wanted to include this in a separate part
 # In order to see the results of the initial model fitting
@@ -259,24 +264,20 @@ def part_eight():
 
 	# Fit & evaluate models
 	for name, model in models:
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
-		scoring = 'accuracy'
-		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		print("\nAccuracy of %s model:\n %.3f%% (+\-%.3f%%)" 
-			% (name, result.mean() * 100.0, result.std() * 100.0))
+		# Different model metrics
+		for scoring in ('accuracy', 'roc_auc'):
+			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
+			try:
+				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
+			except AttributeError:
+				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+			if scoring == 'accuracy':
+				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
+				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
+			else:
+				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
 
-		# Fit model with evaulation metric AUC
-		k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
-		scoring = 'roc_auc'
-		try:
-			result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-		except AttributeError:
-			print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-		print("\nROC value of %s model:\n %.3f (+\-%.3f)" 
-			% (name, result.mean(), result.std()))	
-
-	# Classification report & Confusion Matrix (need to do separate training and evaluation process)
-	for name, model in models:
+		# Classification report & Confusion Matrix (need to do separate training and evaluation process)
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
 		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
@@ -284,15 +285,25 @@ def part_eight():
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 
-		# ROC Curves require probabilites
+		# ROC Curves
 		try:
-			Y_prob = model.predict_proba(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(Y_test, Y_prob)
-			print("\nFalse Positive Rate for %s model:\n" % (name), fpr)
-			print("\nTrue Positive Rate for %s model:\n" % (name), tpr)
-			print("\nThreshold for %s model:\n" % (name), threshold)
+			Y_prob = model.predict(X_test)
+			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
+			roc_auc = metrics.auc(fpr, tpr)
+			
+			plt.title('Receiver Operating Characteristic')
+			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+			plt.legend(loc = 'lower right')
+			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
+			plt.plot([0,0], [1,0], 'k--', color = 'black')
+			plt.plot([1,0], [1,1], 'k--', color = 'black')
+			plt.xlim([-0.1, 1.1])
+			plt.ylim([-0.1, 1.1])
+			plt.xlabel('False Positive Rate')
+			plt.ylabel('True Positive Rate')
+			plt.show()
 		except: 
-			print("This cannot be done")
+			print("The %s model does not support the \"predict\" method" % name)
 
 
 #
