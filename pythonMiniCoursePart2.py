@@ -1,8 +1,6 @@
 #
 ##
-###
-#### PART SIX: Algorithm Evaluation & Comparison with Resampling Methods & Algorithm Evaluation Metrics
-###
+### PART SIX: Algorithm Evaluation Metrics & Comparison with Resampling Methods 
 ##
 #
 
@@ -15,8 +13,9 @@
 Methods for Re-sampling data
 1. Split data once into training and testing sets
 2. Use k-fold cross-validation to create k different train test splits to train k different models
-3. Use leave one out cross-validation: every data point is held out once with the rest of the data used to fit a model 
-	a. Thus n models created, with each trained on n - 1 data points
+3. Use leave one out cross-validation: 
+	a. Every data point is held out once with the rest of the data used to fit a model 
+	b. Thus n models created, with each trained on n - 1 data points
 
 Methods for Evaluating Algorithm Metrics
 1. Accuracy and LogLoss metrics for classdification
@@ -28,7 +27,11 @@ import numpy as np
 import pandas as pd
 import sys
 from sklearn import (model_selection, linear_model, metrics, discriminant_analysis,
-neural_network, tree, svm, naive_bayes)
+neural_network, tree, svm, naive_bayes, ensemble)
+import matplotlib as mpl
+mpl.use('TkAgg')
+from matplotlib import pyplot as plt
+import pickle
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
@@ -46,7 +49,95 @@ Y = array[:, 8]
 X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
 X, Y, test_size = 0.33, random_state = 42)
 
-def part_six():
+def cross_validation(name, model, X, Y, scoring):
+	# Automatically choosing 10-fold cross validation
+	# May change that
+	k_fold = model_selection.KFold(n_splits = 10, random_state = 1)	
+	try:
+		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
+		if scoring == 'accuracy':
+			print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" % 
+				(scoring, name, result.mean() * 100.0, result.std() * 100.0))
+		else:
+			print("\n%s of %s model:\n %.3f (+\-%.3f)" % 
+				(scoring, name, result.mean(), result.std()))
+	except AttributeError:
+		print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+
+def classification_report(name, model, labels, predictions):
+	try:
+		class_report = metrics.classification_report(labels, predictions)
+		print("\nClassification Report for %s model:\n" % (name), class_report)
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.classification_report.__name__))
+def confusion_matrix(name, model, labels, predictions):
+	try:
+		conf_matrix = metrics.confusion_matrix(labels, predictions)
+		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.confusion_matrix.__name__))
+
+def receiver_operating_characteristic(name, model, labels, predictions):
+	# ROC Curves
+	try:
+		fpr, tpr, threshold = metrics.roc_curve(y_true = labels, y_score = predictions, pos_label = 1)
+		roc_auc = metrics.auc(fpr, tpr)
+		
+		plt.title('ROC Curve: %s' % name)
+		plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+		plt.legend(loc = 'lower right')
+		plt.plot([0,1], [0,1], 'r--') # Add diagonal line
+		plt.plot([0,0], [1,0], 'k--', color = 'black')
+		plt.plot([1,0], [1,1], 'k--', color = 'black')
+		plt.xlim([-0.1, 1.1])
+		plt.ylim([-0.1, 1.1])
+		plt.xlabel('False Positive Rate')
+		plt.ylabel('True Positive Rate')
+		plt.show()
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.roc_curve.__name__))
+
+def feature_importances(name, trained_model, X, Y):
+	try:
+		importances = trained_model.feature_importances_
+		#std = np.std([tree.feature_importances_ for tree in fitted_model.estimators_],axis=0)
+		indices = np.argsort(importances)[::-1]
+		print("\nFeature importances for %s model:" %(name))
+		for f in range(X.shape[1]):
+			print("%d. Feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+		plt.figure()
+		plt.title("Feature Importances for %s" % name)
+		plt.bar(range(X.shape[1]), importances[indices], color = 'r', align = 'center')
+		plt.xticks(range(X.shape[1]), indices)
+		plt.xlim([-1, X.shape[1]])
+		plt.show()
+	except: 
+		print("The %s model is not compatible with the %s method" % (name, feature_importances_.__name__))
+
+def save_model(name, trained_model):
+	# Here we will use the "pickle" function to save the model
+	try:
+		pickle.dump(trained_model, open('final_%s_model.sav' % (name), 'wb'))
+	except:
+		print("The %s model is not compatible with the %s method" % (name, pickle.dump.__name__))
+
+def load_model(name):
+	# Now we will load the model and return it
+	try:
+		loaded_model = pickle.load(open('final_%s_model.sav' % (name), 'rb'))
+		return loaded_model
+	except:
+		print("The %s model is not compatible with the %s method" % (name, pickle.load.__name__))
+
+def model_score(name, trained_model, test_data, labels):
+	# Score model
+	try:
+		result = trained_model.score(test_data, labels)
+		print("Score for %s model:\n" % name, result)
+	except:
+		print("The %s model is not compatible with the %s method" % (name, score.__name__))
+def spot_check():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
 	models = []
@@ -68,45 +159,18 @@ def part_six():
 	for name, model in models:
 		# Different model metrics
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
+			cross_validation(name, model, X, Y, scoring)
 
-		# Classification report & Confusion Matrix (needs separate training and evaluation process)
+		# Fit model and make predictions
 		fitted_model = model.fit(X_train, Y_train)
-		Y_pred = model.predict(X_test)
-		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-		class_report = metrics.classification_report(Y_test, Y_pred)
-		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
-		print("\nClassification Report for %s model:\n" % (name), class_report)
+		Y_pred = fitted_model.predict(X_test)
+		
+		# Classification report & Confusion Matrix
+		classification_report(name, model, Y_test, Y_pred)
+		confusion_matrix(name, model, Y_test, Y_pred)
 
-		# ROC Curves
-		try:
-			Y_prob = model.predict(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
-			roc_auc = metrics.auc(fpr, tpr)
-			
-			plt.title('Receiver Operating Characteristic')
-			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-			plt.legend(loc = 'lower right')
-			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
-			plt.plot([0,0], [1,0], 'k--', color = 'black')
-			plt.plot([1,0], [1,1], 'k--', color = 'black')
-			plt.xlim([-0.1, 1.1])
-			plt.ylim([-0.1, 1.1])
-			plt.xlabel('False Positive Rate')
-			plt.ylabel('True Positive Rate')
-			plt.show()
-		except: 
-			print("The %s model does not support the \"predict\" method" % name)
-
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, model, Y_test, Y_pred)
 
 	""" 
 	The best models from here were:
@@ -117,13 +181,11 @@ def part_six():
 
 #
 ##
-###
-#### PART SEVEN: Improve Accuracy with Ensemble Predictions
-###
+### PART SEVEN: Improve Accuracy with Ensemble Predictions
 ##
 #
 
-# The part before had us training single models for evaluation
+# The part before trained single models for evaluation
 # This is usually sufficient, but one can also combine predictions from multiple equivalent models
 # Some models are built in with this capacity, e.g:
 # Random Forest for bagging, Stochastic Gradient Boosting for Boosting
@@ -131,11 +193,7 @@ def part_six():
 # Where the predictions from multiple different models are combined
 # This will be done in the next part
 
-from sklearn import ensemble
-import matplotlib as mpl
-mpl.use('TkAgg')
-from matplotlib import pyplot as plt
-def part_seven():
+def ensemble_models():
 	# Here let's implement some ensemble methods to potentially improve accuracy
 	# And get a better idea of the inherent structure of the data
 
@@ -154,58 +212,21 @@ def part_seven():
 	for name, model in models:
 		# Different model metrics
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
+			cross_validation(name, model, X, Y, scoring)
 
-		# Classification report, Confusion Matrix, Feature Importance (need to do separate training and evaluation process)
+		# Fit model and make predictions
 		fitted_model = model.fit(X_train, Y_train)
-		Y_pred = model.predict(X_test)
-		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-		class_report = metrics.classification_report(Y_test, Y_pred)
-		importances = fitted_model.feature_importances_
-		#std = np.std([tree.feature_importances_ for tree in fitted_model.estimators_],axis=0)
-		indices = np.argsort(importances)[::-1]
-		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
-		print("\nClassification Report for %s model:\n" % (name), class_report)
-		print("\nFeature importances for %s model:" %(name))
-		for f in range(X.shape[1]):
-			print("%d. Feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+		Y_pred = fitted_model.predict(X_test)
+		
+		# Classification report & Confusion Matrix
+		classification_report(name, model, Y_test, Y_pred)
+		confusion_matrix(name, model, Y_test, Y_pred)
 
-		plt.figure()
-		plt.title("Feature Importances for %s" % name)
-		plt.bar(range(X.shape[1]), importances[indices], color = 'r', align = 'center')
-		plt.xticks(range(X.shape[1]), indices)
-		plt.xlim([-1, X.shape[1]])
-		plt.show()
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, model, Y_test, Y_pred)
 
-
-		# ROC Curves
-		try:
-			Y_prob = model.predict(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
-			roc_auc = metrics.auc(fpr, tpr)
-			
-			plt.title('Receiver Operating Characteristic')
-			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-			plt.legend(loc = 'lower right')
-			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
-			plt.plot([0,0], [1,0], 'k--', color = 'black')
-			plt.plot([1,0], [1,1], 'k--', color = 'black')
-			plt.xlim([-0.1, 1.1])
-			plt.ylim([-0.1, 1.1])
-			plt.xlabel('False Positive Rate')
-			plt.ylabel('True Positive Rate')
-			plt.show()
-		except: 
-			print("The %s model does not support the \"predict\" method" % name)
+		# Feature importances
+		feature_importances(name, fitted_model, X, Y)
 
 	"""
 	All of them achieve pretty much the same results as the simpler models
@@ -216,9 +237,7 @@ def part_seven():
 
 #
 ##
-###
-#### PART EIGHT: Voting Classifier: Can we combine the results of multiple models to achieve better performance?
-###
+### PART EIGHT: Voting Classifier: Can we combine multiple models to achieve better performance?
 ##
 #
 
@@ -231,7 +250,7 @@ def part_seven():
 # There are different voting methods as well (hard vs soft)
 # All will be attempted
 
-def part_eight():
+def voting_ensemble():
 	# Last but not least, let's combine some of these models 
 	# To try for better predictive performance
 
@@ -261,56 +280,27 @@ def part_eight():
 	# Number 3: Soft Vote with weights
 	# Some models will be more valuable than others
 
-
 	# Fit & evaluate models
 	for name, model in models:
 		# Different model metrics
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
+			cross_validation(name, model, X, Y, scoring)
 
-		# Classification report & Confusion Matrix (need to do separate training and evaluation process)
+
+		# Fit model and make predictions
 		fitted_model = model.fit(X_train, Y_train)
-		Y_pred = model.predict(X_test)
-		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-		class_report = metrics.classification_report(Y_test, Y_pred)
-		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
-		print("\nClassification Report for %s model:\n" % (name), class_report)
+		Y_pred = fitted_model.predict(X_test)
+		
+		# Classification report & Confusion Matrix (needs separate training and evaluation process)
+		classification_report(name, model, Y_test, Y_pred)
+		confusion_matrix(name, model, Y_test, Y_pred)
 
-		# ROC Curves
-		try:
-			Y_prob = model.predict(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
-			roc_auc = metrics.auc(fpr, tpr)
-			
-			plt.title('Receiver Operating Characteristic')
-			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-			plt.legend(loc = 'lower right')
-			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
-			plt.plot([0,0], [1,0], 'k--', color = 'black')
-			plt.plot([1,0], [1,1], 'k--', color = 'black')
-			plt.xlim([-0.1, 1.1])
-			plt.ylim([-0.1, 1.1])
-			plt.xlabel('False Positive Rate')
-			plt.ylabel('True Positive Rate')
-			plt.show()
-		except: 
-			print("The %s model does not support the \"predict\" method" % name)
-
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, model, Y_test, Y_pred)
 
 #
 ##
-###
-#### PART NINE: Pick a Final Model and Save
-###
+### PART NINE: Pick a Final Model and Save
 ##
 #
 
@@ -319,8 +309,7 @@ def part_eight():
 # I would like to do one linear and one non-linear model 
 # Because the training time difference is negligible
 # Let's do Logistic Regression and a Random Forest
-import pickle
-def part_nine():
+def final_models():
 
 	n_trees = 100
 	models = []
@@ -330,27 +319,27 @@ def part_nine():
 	# Train models and save to disk
 	for name, model in models:
 		model.fit(X_train, Y_train)
-		pickle.dump(model, open('final_%s_model.sav' % (name), 'wb'))
+		save_model(name, model)
 
 	# A while later...
 	for name, model in models:
-		loaded_model = pickle.load(open('final_%s_model.sav' % (name), 'rb'))
-		result = loaded_model.score(X_test, Y_test)
-		Y_pred = model.predict(X_test)
-		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-		class_report = metrics.classification_report(Y_test, Y_pred)
-		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
-		print("\nClassification Report for %s model:\n" % (name), class_report)
-		print("Score for %s model:\n" % name, result)
+		loaded_model = load_model(name)
+		# Model score
+		model_score(name, loaded_model, X_test, Y_test)
+
+		# Classification report & Confusion Matrix (needs separate training and evaluation process)
+		Y_pred = loaded_model.predict(X_test)
+		classification_report(name, model, Y_test, Y_pred)
+		confusion_matrix(name, model, Y_test, Y_pred)
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        if sys.argv[1] == '6':
-            part_six()
-        elif sys.argv[1] == '7':
-            part_seven()
-        elif sys.argv[1] == '8':
-            part_eight()
-        elif sys.argv[1] == '9':
-            part_nine()
+        if sys.argv[1] == 'spot':
+            spot_check()
+        elif sys.argv[1] == 'ensemble':
+            ensemble_models()
+        elif sys.argv[1] == 'voting':
+            voting_ensemble()
+        elif sys.argv[1] == 'final':
+            final_models()

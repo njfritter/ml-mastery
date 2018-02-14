@@ -50,4 +50,9 @@ This is a work in progress; I initally split up everything into parts depending 
 
 However I will be splitting up by the different applications used, as this is better python practice.
 
+### Sources Cited
+
++ Brownlee, Jason. Machine Learning Mastery with Python Mini-Course [https://s3.amazonaws.com/MLMastery/machine_learning_mastery_with_python_mini_course.pdf?__s=mxhvphowryg2sfmzus2q] *From Developer to Python Machine Learning Practitioner in 14 days*
++ Brownlee, Jason. Original Python Mini Course Github [https://github.com/JasonLian/Machine-Learning/blob/master/!Book%20and%20Paper/Machine_learning_mastery_with_Python_mini_course/Machine%20Learning%20with%20Python/mini_course.py]
++ Scikit-Learn Documentation [http://scikit-learn.org/stable/index.html]
 

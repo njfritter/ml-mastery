@@ -16,7 +16,10 @@ import pandas as pd
 import sys
 from sklearn import (preprocessing, model_selection, linear_model, 
 	metrics, neighbors, neural_network, svm, ensemble
-	)
+)
+import matplotlib as mpl
+mpl.use('TkAgg')
+from matplotlib import pyplot as plt
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
@@ -29,7 +32,76 @@ array = data.values
 X = array[:, 0:8]
 Y = array[:, 8]
 
-def part_ten():
+def cross_validation(name, model, X, Y, scoring):
+	# Automatically choosing 10-fold cross validation
+	# May change that
+	k_fold = model_selection.KFold(n_splits = 10, random_state = 1)	
+	try:
+		result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
+		if scoring == 'accuracy':
+			print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" % 
+				(scoring, name, result.mean() * 100.0, result.std() * 100.0))
+		else:
+			print("\n%s of %s model:\n %.3f (+\-%.3f)" % 
+				(scoring, name, result.mean(), result.std()))
+	except AttributeError:
+		print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+
+def classification_report(name, model, labels, predictions):
+	try:
+		class_report = metrics.classification_report(labels, predictions)
+		print("\nClassification Report for %s model:\n" % (name), class_report)
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.classification_report.__name__))
+def confusion_matrix(name, model, labels, predictions):
+	try:
+		conf_matrix = metrics.confusion_matrix(labels, predictions)
+		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.confusion_matrix.__name__))
+
+def receiver_operating_characteristic(name, model, labels, predictions, data):
+	# ROC Curves
+	try:
+		fpr, tpr, threshold = metrics.roc_curve(y_true = labels, y_score = predictions, pos_label = 1)
+		roc_auc = metrics.auc(fpr, tpr)
+
+		if data is not None:
+			plt.title('%s ROC Curve: %s' % (data, name))
+		else:
+			plt.title('ROC Curve: %s' % (name))
+		plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
+		plt.legend(loc = 'lower right')
+		plt.plot([0,1], [0,1], 'r--') # Add diagonal line
+		plt.plot([0,0], [1,0], 'k--', color = 'black')
+		plt.plot([1,0], [1,1], 'k--', color = 'black')
+		plt.xlim([-0.1, 1.1])
+		plt.ylim([-0.1, 1.1])
+		plt.xlabel('False Positive Rate')
+		plt.ylabel('True Positive Rate')
+		plt.show()
+	except:
+		print("The %s model is not compatible with the %s method" % (name, metrics.roc_curve.__name__))
+
+def feature_importances(name, trained_model, X, Y):
+	try:
+		importances = trained_model.feature_importances_
+		#std = np.std([tree.feature_importances_ for tree in fitted_model.estimators_],axis=0)
+		indices = np.argsort(importances)[::-1]
+		print("\nFeature importances for %s model:" %(name))
+		for f in range(X.shape[1]):
+			print("%d. Feature %d (%f)" % (f + 1, indices[f], importances[indices[f]]))
+
+		plt.figure()
+		plt.title("Feature Importances for %s" % name)
+		plt.bar(range(X.shape[1]), importances[indices], color = 'r', align = 'center')
+		plt.xticks(range(X.shape[1]), indices)
+		plt.xlim([-1, X.shape[1]])
+		plt.show()
+	except: 
+		print("The %s model is not compatible with the %s method" % (name, feature_importances_.__name__))
+
+def stand_norm_test():
 	# Another method of model fitting involves using standardized data
 	# This works best for iterative models that converge to their fitted parameter values
 	# I.e. approach the limits of parameter values as the iterations increase
@@ -53,7 +125,7 @@ def part_ten():
 	# Models
 	models = []
 	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Neural Network', neural_network.MLPClassifier(random_state = 1, solver = 'adam', max_iter = 500)))
+	models.append(('Neural Network', neural_network.MLPClassifier(random_state = 1, solver = 'adam', max_iter = 1000)))
 
 	# Train models and report results
 	for name, model in models:
@@ -61,50 +133,36 @@ def part_ten():
 		# Different model metrics
 		print("Standardized data results:\n")
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X_stand, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
-
+			cross_validation(name, model, X_stand, Y, scoring)
 
 		# Confusion Matrix and Classification report
-		fitted_model = model.fit(X_train_stand, Y_train_stand)
-		Y_pred_stand = model.predict(X_test_stand)
-		conf_matrix_stand = metrics.confusion_matrix(Y_test_stand, Y_pred_stand)
-		class_report_stand = metrics.classification_report(Y_test_stand, Y_pred_stand)
-		print("\nConfusion matrix for %s model with standardized data:\n" % (name), conf_matrix_stand)
-		print("\nClassification report for %s model with standardized data:\n" % (name), class_report_stand)
+		fitted_model_stand = model.fit(X_train_stand, Y_train_stand)
+		Y_pred_stand = fitted_model_stand.predict(X_test_stand)
+
+		# Classification report & Confusion Matrix (needs separate training and evaluation process)
+		classification_report(name, model, Y_test_stand, Y_pred_stand)
+		confusion_matrix(name, model, Y_test_stand, Y_pred_stand)
+
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, model, Y_test_stand, Y_pred_stand, 'Standardized')
 
 		# Now with normalized data
 		print("Normalized data results:\n")
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X_norm, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
+			cross_validation(name, model, X_norm, Y, scoring)
 
 		# Confusion Matrix and Classification report
-		fitted_model = model.fit(X_train_norm, Y_train_norm)
-		Y_pred_norm = model.predict(X_test_norm)
-		conf_matrix_norm = metrics.confusion_matrix(Y_test_norm, Y_pred_norm)
-		class_report_norm = metrics.classification_report(Y_test_norm, Y_pred_norm)
-		print("\nConfusion matrix for %s model with normalized data:\n" % (name), conf_matrix_norm)
-		print("\nClassification report for %s model with normalized data:\n" % (name), class_report_norm)
+		fitted_model_norm = model.fit(X_train_norm, Y_train_norm)
+		Y_pred_norm = fitted_model_norm.predict(X_test_norm)
 
+		# Classification report & Confusion Matrix (needs separate training and evaluation process)
+		classification_report(name, model, Y_test_norm, Y_pred_norm)
+		confusion_matrix(name, model, Y_test_norm, Y_pred_norm)
 
-def part_eleven():
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, model, Y_test_norm, Y_pred_norm, 'Normalized')
+
+def significant_variables():
 	# Another potential next step would be to try fitting data only on the most significant covariates
 	# In this case, variables 1, 5, 6, and 7 ("preg", "test", "mass", "pedi")
 	# Let's fit some models using only these variables
@@ -118,57 +176,30 @@ def part_eleven():
 
 	n_trees = 100
 	models = []
-	models.append(('Logistic_Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Random_Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
+	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
+	models.append(('Random Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
 
 	# Fit & evaluate models
 	for name, model in models:
 		# Different model metrics
 		for scoring in ('accuracy', 'roc_auc'):
-			k_fold = model_selection.KFold(n_splits = 10, random_state = 1)
-			try:
-				result = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-			except AttributeError:
-				print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
-			if scoring == 'accuracy':
-				print("\n%s of %s model:\n %.3f%% (+\-%.3f%%)" 
-				% (scoring, name, result.mean() * 100.0, result.std() * 100.0))
-			else:
-				print("\n%s of %s model:\n %.3f (+\-%.3f)" % (scoring, name, result.mean(), result.std()))	
+			cross_validation(name, model, X, Y, scoring)	
 
-		# Classification report & Confusion Matrix (need to do separate training and evaluation process)
+		# Fit model and make predictions
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = model.predict(X_test)
-		conf_matrix = metrics.confusion_matrix(Y_test, Y_pred)
-		class_report = metrics.classification_report(Y_test, Y_pred)
-		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
-		print("\nClassification Report for %s model:\n" % (name), class_report)
+		
+		# Classification report & Confusion Matrix
+		classification_report(name, model, Y_test, Y_pred)
+		confusion_matrix(name, model, Y_test, Y_pred)
 
 		# ROC Curves
-		try:
-			Y_prob = model.predict(X_test)
-			fpr, tpr, threshold = metrics.roc_curve(y_true = Y_test, y_score = Y_prob, pos_label = 1)
-			roc_auc = metrics.auc(fpr, tpr)
-			
-			plt.title('Receiver Operating Characteristic')
-			plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
-			plt.legend(loc = 'lower right')
-			plt.plot([0,1], [0,1], 'r--') # Add diagonal line
-			plt.plot([0,0], [1,0], 'k--', color = 'black')
-			plt.plot([1,0], [1,1], 'k--', color = 'black')
-			plt.xlim([-0.1, 1.1])
-			plt.ylim([-0.1, 1.1])
-			plt.xlabel('False Positive Rate')
-			plt.ylabel('True Positive Rate')
-			plt.show()
-		except: 
-			print("The %s model does not support the \"predict\" method" % name)
-
+		receiver_operating_characteristic(name, model, Y_test, Y_pred, None)
 
 	# Hmm accuracy and other metrics decrease slightly
 	# But the Logistic Regression model keeps chugging along!
 
-def part_twelve():
+def regression():
 	# Now we will do a regression problem for one part
 	# It deserves more, but this is all I can do for now
 	# Most of the algorithms above can be used for regression
@@ -193,18 +224,16 @@ def part_twelve():
 	for name, model in models:
 		# Different model metrics
 		for scoring in ('neg_mean_squared_error', 'explained_variance'):
-			results = model_selection.cross_val_score(model, X, Y, cv = k_fold, scoring = scoring)
-			print("\nMean %s of %s model:" % (scoring, name), results.mean())
-			print("\nStandard deviation %s of %s model:" % (scoring, name), results.std())
+			cross_validation(name, model, X, Y, scoring)
 
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        if sys.argv[1] == '10':
-        	part_ten()
-        if sys.argv[1] == '11':
-        	part_eleven()
-        if sys.argv[1] == '12':
-        	part_twelve()
+        if sys.argv[1] == 'test':
+        	stand_norm_test()
+        if sys.argv[1] == 'sig':
+        	significant_variables()
+        if sys.argv[1] == 'reg':
+        	regression()
 
 

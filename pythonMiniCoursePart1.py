@@ -14,18 +14,21 @@ import numpy as np
 import pandas as pd
 import sys
 
+def display_stuff(stuff):
+	print("uhh")
+
 def part_one():
 	my_array = np.array([[1, 2, 3], [4, 5, 6]])
 	row_names = ['a', 'b']
 	col_names = ['one', 'two', 'three']
 	my_df = pd.DataFrame(my_array, index = row_names, columns = col_names)
-	print("\nMy DataFrame:\n", my_df)
+	print("\nMy DataFrame:\n", type(my_df))
 	print("\nThe shape of my DataFrame:\n", my_df.shape)
 
 	my_series = np.array([7, 8, 9])
 	series_index = ['bears', 'beets', 'battlestar galatica']
 	my_pd_series = pd.Series(my_series, index = series_index)
-	print("\nMy Series:\n", my_pd_series)
+	print("\nMy Series:\n", type(my_pd_series))
 	print("\nThe shape of my Series:\n", my_pd_series.shape)
 
 #
@@ -81,7 +84,6 @@ def part_two():
 			print("\nHere is the shape of the data for %s:\n" %(method), data.shape)
 			print("\nHere is the head of the data for %s:\n" %(method), data[0:9,])
 			print("\nHere is the tail of the data for %s:\n" %(method), data[0:9,])
-
 
 #
 ##
