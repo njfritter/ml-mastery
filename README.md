@@ -29,8 +29,11 @@ Feel free to clone the repo, make a branch, leave comments or contribute in any 
 		+ This turns on the virtual environment and puts you in it
 	+ `pip3 install -r requirements.txt`
 		+ Installs every python package listed in the requirements.txt file
-	+ `python3 miniCourse.py *number*`
-		+ Examine the code and replace *number* with whichever part you'd like to run
+	+ `python3 pythonMiniCoursePart#.py *text*`
+		+ Examine the code at the bottom of each part
+		+ Replace # with whichever part you'd like to run
+		+ Replace *text* with whichever part you'd like to run
+		+ E.g. "spot" to spot check algorithms, "ensemble" to do ensemble methods, etc.
 
 ### Contributing
 
@@ -49,6 +52,8 @@ If you do contribute, I will add your name as a contributor!
 This is a work in progress; I initally split up everything into parts depending on the minicourse.
 
 However I will be splitting up by the different applications used, as this is better python practice.
+
+*Update:* I have now split up the code into different parts and have dedicated functions to doing different tasks. Please let me know if there is a better way of going about things.
 
 ### Sources Cited
 

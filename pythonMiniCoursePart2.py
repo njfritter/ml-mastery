@@ -63,6 +63,9 @@ def cross_validation(name, model, X, Y, scoring):
 				(scoring, name, result.mean(), result.std()))
 	except AttributeError:
 		print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+	else:
+		except Exception as e:
+			print(e)
 
 def classification_report(name, model, labels, predictions):
 	try:
@@ -331,7 +334,6 @@ def final_models():
 		Y_pred = loaded_model.predict(X_test)
 		classification_report(name, model, Y_test, Y_pred)
 		confusion_matrix(name, model, Y_test, Y_pred)
-
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
