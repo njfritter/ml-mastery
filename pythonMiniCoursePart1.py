@@ -24,7 +24,7 @@ from sklearn import preprocessing
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
-columns = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
+columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 # Read in data
 data = pd.read_csv(url, names = columns)
@@ -164,13 +164,13 @@ def transform(data, method):
 
 def the_basics():
 	my_array = np.array([[1, 2, 3], [4, 5, 6]])
-	row_names = ['a', 'b']
-	col_names = ['one', 'two', 'three']
+	row_names = np.array(['a', 'b'])
+	col_names = np.array(['one', 'two', 'three'])
 	my_df = pd.DataFrame(my_array, index = row_names, columns = col_names)
 	basic_output(my_df)
 
 	my_series = np.array([7, 8, 9])
-	series_index = ['bears', 'beets', 'battlestar galatica']
+	series_index = np.array(['bears', 'beets', 'battlestar galatica'])
 	my_pd_series = pd.Series(my_series, index = series_index)
 	basic_output(my_pd_series)
 

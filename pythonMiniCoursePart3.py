@@ -21,7 +21,7 @@ from matplotlib import pyplot as plt
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
-columns = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
+columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 data = pd.read_csv(url, names = columns)
 array = data.values
@@ -141,9 +141,9 @@ def stand_norm_test():
 	X_train_norm, X_test_norm, Y_train_norm, Y_test_norm = split_train_test(X_norm, Y, 0.33, 142)
 
 	# Models
-	models = []
-	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Neural Network', neural_network.MLPClassifier(random_state = 1, solver = 'adam', max_iter = 1000)))
+	models = np.empty([2, 2], dtype = 'object')
+	models[0] = ['Logistic Regression', linear_model.LogisticRegression(random_state = 1)]
+	models[1] = ['Neural Network', neural_network.MLPClassifier(random_state = 1, solver = 'adam', max_iter = 1000)]
 
 	# Train models and report results
 	for name, model in models:
@@ -171,9 +171,9 @@ def significant_variables():
 	X, Y, test_size = 0.33, random_state = 42)
 
 	n_trees = 100
-	models = []
-	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Random Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
+	models = np.empty([2, 2], dtype = 'object')
+	models[0] = ['Logistic Regression', linear_model.LogisticRegression(random_state = 1)]
+	models[1] = ['Random Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)]
 
 	# Fit & evaluate models
 	for name, model in models:
@@ -191,7 +191,7 @@ def regression():
 	# Most of the algorithms above can be used for regression
 	# So I will use some of the ones I haven't used yet
 	new_url = 'https://goo.gl/sXleFv'
-	new_columns = ['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV']
+	new_columns = np.array(['CRIM', 'ZN', 'INDUS', 'CHAS', 'NOX', 'RM', 'AGE', 'DIS', 'RAD', 'TAX', 'PTRATIO', 'B', 'LSTAT', 'MEDV'])
 
 	dataframe = pd.read_csv(new_url, delim_whitespace = True, names = new_columns)
 	array = dataframe.values
@@ -199,13 +199,13 @@ def regression():
 	Y = array[:, 13]
 
 	k_fold = model_selection.KFold(n_splits = 10, random_state = 7)
-	models = []
-	models.append(('K Nearest Neighbors', neighbors.KNeighborsRegressor()))
-	models.append(('Linear Regression', linear_model.LinearRegression()))
-	models.append(('Ridge Regression', linear_model.Ridge()))
-	models.append(('Support Vector Regressor', svm.LinearSVR()))
-	models.append(('Random Forest Regressor', ensemble.RandomForestRegressor()))
-	models.append(('Gradient Boosted Trees', ensemble.GradientBoostingRegressor()))
+	models = np.empty([6, 2], dtype = 'object')
+	models[0] = ['K Nearest Neighbors', neighbors.KNeighborsRegressor()]
+	models[1] = ['Linear Regression', linear_model.LinearRegression()]
+	models[2] = ['Ridge Regression', linear_model.Ridge()]
+	models[3] = ['Support Vector Regressor', svm.LinearSVR()]
+	models[4] = ['Random Forest Regressor', ensemble.RandomForestRegressor()]
+	models[5] = ['Gradient Boosted Trees', ensemble.GradientBoostingRegressor()]
 
 	for name, model in models:
 		# Different model metrics

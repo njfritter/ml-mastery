@@ -61,6 +61,10 @@ Please let me know if there is a better way of going about things.
 
 If anyone knows why this is happening/would like to fix it please let me know or clone and make a pull request.
 
+*Update 3:* I have overdone the try/except statements intentionally, so I will be scaling this back at some point. 
+
+Also have just replaced all usage of lists and dictionaries with numpy arrays (more efficient storage).
+
 ### Sources Cited
 
 + Brownlee, Jason. Machine Learning Mastery with Python Mini-Course [https://s3.amazonaws.com/MLMastery/machine_learning_mastery_with_python_mini_course.pdf?__s=mxhvphowryg2sfmzus2q] *From Developer to Python Machine Learning Practitioner in 14 days*

@@ -36,7 +36,7 @@ import pickle
 
 # Define url and columns
 url = "https://goo.gl/vhm1eU"
-columns = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
+columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 # Read in data and split up so we don't do this over and over
 data = pd.read_csv(url, names = columns)
@@ -146,20 +146,20 @@ def model_score(name, trained_model, test_data, labels):
 def spot_check():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
-	models = []
+	models = np.empty([8, 2], dtype = object)
 
 	# Simpler models
-	models.append(('Logistic Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Linear Discriminant Analysis', discriminant_analysis.LinearDiscriminantAnalysis()))
-	models.append(('Naive Bayes', naive_bayes.MultinomialNB()))
-	models.append(('Decision Tree', tree.DecisionTreeClassifier(max_features = 3, random_state = 1)))
+	models[0] = ['Logistic Regression', linear_model.LogisticRegression(random_state = 1)]
+	models[1] = ['Linear Discriminant Analysis', discriminant_analysis.LinearDiscriminantAnalysis()]
+	models[2] = ['Naive Bayes', naive_bayes.MultinomialNB()]
+	models[3] = ['Decision Tree', tree.DecisionTreeClassifier(max_features = 3, random_state = 1)]
 
 	# More complex models	
-	models.append(('Neural Network', neural_network.MLPClassifier(random_state = 1)))
-	models.append(('Ridge Classifier', linear_model.RidgeClassifier(random_state = 1)))
-	models.append(('SGD Classifier', linear_model.SGDClassifier(max_iter = 5, 
-		tol = None, random_state = 1)))
-	models.append(('Support Vector Machine', svm.LinearSVC(random_state = 1)))
+	models[4] = ['Neural Network', neural_network.MLPClassifier(random_state = 1)]
+	models[5] = ['Ridge Classifier', linear_model.RidgeClassifier(random_state = 1)]
+	models[6] = ['SGD Classifier', linear_model.SGDClassifier(max_iter = 5, 
+		tol = None, random_state = 1)]
+	models[7] = ['Support Vector Machine', svm.LinearSVC(random_state = 1)]
 	
 	# Fit & evaluate models
 	for name, model in models:
@@ -199,16 +199,16 @@ def ensemble_models():
 	# Here let's implement some ensemble methods to potentially improve accuracy
 	# And get a better idea of the inherent structure of the data
 
-	models = []
+	models = np.empty([4, 2], dtype = object)
 	# Boosting ensembles
-	models.append(('Gradient Boosted Machine', ensemble.GradientBoostingClassifier(random_state = 1)))
-	models.append(('AdaBoost Classifier', ensemble.AdaBoostClassifier(random_state = 1)))
+	models[0] = ['Gradient Boosted Machine', ensemble.GradientBoostingClassifier(random_state = 1)]
+	models[1] = ['AdaBoost Classifier', ensemble.AdaBoostClassifier(random_state = 1)]
 
 	# Bagging Ensembles
 	# Even though the decision tree didn't do so well, a random forest might
 	n_trees = 100
-	models.append(('Random Forest', ensemble.RandomForestClassifier(n_estimators = n_trees,	max_features = 3, random_state = 1)))
-	models.append(('Extra Trees Classifier', ensemble.ExtraTreesClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)))
+	models[2] = ['Random Forest', ensemble.RandomForestClassifier(n_estimators = n_trees,	max_features = 3, random_state = 1)]
+	models[3] = ['Extra Trees Classifier', ensemble.ExtraTreesClassifier(n_estimators = n_trees, max_features = 3, random_state = 1)]
 
 	# Fit & evaluate models
 	for name, model in models:
@@ -250,21 +250,21 @@ def voting_ensemble():
 	# Last but not least, let's combine some of these models 
 	# To try for better predictive performance
 	n_trees = 100
-	models = []
+	models = np.empty([2, 2], dtype = 'object')
 
 	# Voting ensembles
 	# Number 1: Hard Vote (Predicted class labels used for majority rule voting)
-	models.append(('Voting Classifier 1', ensemble.VotingClassifier(estimators = [
+	models[0] = ['Voting Classifier 1', ensemble.VotingClassifier(estimators = [
 		('lr', linear_model.LogisticRegression(random_state = 1)),
 		('gbm', ensemble.GradientBoostingClassifier(random_state = 1)),
-		], voting = 'hard')))
+		], voting = 'hard')]
 
 	# Number 2: Soft Vote (Argmax of sums of predicted probabilities used)
 	# Recommended for ensemble of well-calibrated classifiers
-	models.append(('Voting Classifier 2', ensemble.VotingClassifier(estimators = [
+	models[1] = ['Voting Classifier 2', ensemble.VotingClassifier(estimators = [
 		('lda', discriminant_analysis.LinearDiscriminantAnalysis()),
 		('rf', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3))
-		], voting = 'soft')))
+		], voting = 'soft')]
 
 	# Number 3: Soft Vote with weights
 	# Some models will be more valuable than others
@@ -298,9 +298,9 @@ def voting_ensemble():
 def final_models():
 
 	n_trees = 100
-	models = []
-	models.append(('Logistic_Regression', linear_model.LogisticRegression(random_state = 1)))
-	models.append(('Random_Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)))
+	models = np.empty([2, 2], dtype = 'object')
+	models[0] = ['Logistic_Regression', linear_model.LogisticRegression(random_state = 1)]
+	models[1] = ['Random_Forest', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3)]
 
 	# Train models and save to disk
 	for name, model in models:
