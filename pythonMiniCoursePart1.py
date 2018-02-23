@@ -26,11 +26,18 @@ from sklearn import preprocessing
 url = "https://goo.gl/vhm1eU"
 columns = ['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class']
 
-def basic_output(data):
-	print("\nData type encountered: %s\n" % (type(data)))
-	print("\nThe shape of my %s: %s\n" % (type(data) , data.shape))
-	print("Data below:\n", data)
+# Read in data
+data = pd.read_csv(url, names = columns)
+array = data.values
 
+def basic_output(data):
+	try:
+		print("\nData type encountered: %s\n" % (type(data)))
+		print("\nThe shape of my %s: %s\n" % (type(data) , data.shape))
+		print("Data below:\n", data)
+
+	except TypeError:
+		print("Incompatible data type")	
 def read_data(url, method):
 
 	# Method one: Pandas read_csv() function
@@ -45,11 +52,10 @@ def read_data(url, method):
 		data = np.loadtxt(url, dtype = float, delimiter = ',')
 
 	# Method three: Load in using csv.reader() function
-	# Since the original method can only read it physical csvs
+	# Since the original method can only read physical csvs
 	# We need to include the urllib.request.urlopen() method for the url
 	# THEN, to properly load the data, we need to create a generator object using codecs
-	# Then convert to a list, THEN to a DataFrame in pandas
-	# Having fun yet?
+	# Then convert to a list, THEN to a DataFrame in pandas. Having fun yet?
 	if method == 3:
 		print("\nLoading in data via the csv.reader() method using a url\n")
 		response = urllib.request.urlopen(url)
@@ -71,20 +77,19 @@ def read_data(url, method):
 def plot_data_seaborn(data, method):
 
 	try:
-		if method == "heatmap":
-			# Plot correlation matrix on heatmap
-			# Heatmap of correlations
+		if method == "Heatmap":
+			# Plot correlation matrix on heatmap w/ custom diverging colormap
 			f, ax = plt.subplots(figsize = (11, 9))
-		
-			# Using custom diverging colormap
 			c_map = sns.diverging_palette(100, 200, as_cmap = True)
 
 			# Draw heatmap with mask and correct aspect ratio
 			sns.heatmap(data, cmap = c_map, square = True,
 				xticklabels = True, yticklabels = True,
 				linewidths = 0.5, cbar_kws = {"shrink": 0.5}, ax = ax)
-		
-		if method == "scatterplot":
+			#plt.title("Heatmap of Pre-Processed Variables: Seaborn Method", loc = 'center')
+			ax.set_title("Heatmap of Pre-Processed Variables: Seaborn Method")
+
+		if method == "Scatterplot":
 			cols = data.columns.values
 			sns.pairplot(data, 
 				x_vars = cols,
@@ -92,17 +97,21 @@ def plot_data_seaborn(data, method):
 				hue = 'class',
 				palette = ('Red', 'Blue'),
 				markers = ["o", "D"])
+			plt.title("Scatter Plot of Pre-Processed Variables: Seaborn Method", loc = 'center')
 
-		if method == "box":
+		if method == "Boxplot":
 			f , ax = plt.subplots(figsize = (11, 20))
 
 			ax.set_facecolor('#fafafa')
 			ax.set(xlim = (-0.05, 50))
-			plt.ylabel('Dependent Variables')
-			plt.title("Box Plot of Pre-Processed Variables")
+			#plt.ylabel('Dependent Variables')
+			ax.set_ylabel('Dependent Variables')
+			ax.set_title("Box Plot of Pre-Processed Variables: Seaborn Method")
+			#plt.title("Box Plot of Pre-Processed Variables: Seaborn Method", loc = 'center')
 			ax = sns.boxplot(data = data, orient = 'h', palette = 'Set2')
 
 		plt.show()
+		plt.close()
 
 	except ValueError:
 		print("Invalid method entered")
@@ -110,17 +119,21 @@ def plot_data_seaborn(data, method):
 def plot_data_other(data, method):
 
 	try:
-		if method == "scatterplot":
+		if method == "Scatterplot":
 			graph = pd.plotting.scatter_matrix(data)
+			plt.title("Scatter Plot of Pre-Processed Variables: Other Method", loc = 'center')
 
-		if method == "box":
+		if method == "Boxplot":
 			# Box and whisker plot
 			data.plot(kind = 'box')
+			plt.title("Box Plot of Pre-Processed Variables: Other Method", loc = 'center')
 
-		if method == "hist":
+		if method == "Histogram":
 			data.hist()
+			plt.title("Histogram of Pre-Processed Variables: Other Method", loc = 'center')
 
 		plt.show()
+		plt.close()
 
 	except ValueError:
 		print("Invalid method entered")
@@ -195,7 +208,6 @@ def load_data():
 
 def explore_data():
 
-	data = pd.read_csv(url, names = columns)
 	# Remove class: Not necessary or meaningful here
 	# data = data.iloc[:, 0:8]
 	description = data.describe()
@@ -216,7 +228,7 @@ def explore_data():
 		freq.plot(kind = 'bar')
 		plt.show()
 	"""
-	plot_data_seaborn(correlation, "heatmap")
+	plot_data_seaborn(correlation, "Heatmap")
 
 #
 ##
@@ -228,23 +240,21 @@ def explore_data():
 
 def visualize_data():
 
-	# Here we will do a bit more in depth visualization stuffs
-	data = pd.read_csv(url, names = columns)
-	
+	# Here we will do a bit more in depth visualization stuffs	
 	# Scatterplot matrix through pandas
-	plot_data_other(data, "scatterplot")
+	plot_data_other(data, "Scatterplot")
 
 	# Scatterplot matrix through Seaborn
-	plot_data_seaborn(data, "scatterplot")
+	plot_data_seaborn(data, "Scatterplot")
 
 	# Box and whisker plot (built in method)
-	plot_data_other(data, "box")
+	plot_data_other(data, "Boxplot")
 
 	# Seaborn box and whisker plot
-	plot_data_seaborn(data, "box")
+	plot_data_seaborn(data, "Boxplot")
 
 	# Histogram (better version of frequency counts; shows all at once)
-	plot_data_other(data, "hist")
+	plot_data_other(data, "Histogram")
 
 #
 ##
@@ -254,9 +264,8 @@ def visualize_data():
 ##
 #
 
-# One's data may not be in the best shape for modeling
-# Sometimes transformations are needed 
-# In order to best present the inherent structure of the data to the model
+# The unprocessed data may not be in the best shape for modeling
+# Sometimes the best interpretation of the inherent structure of the data come via transformations 
 # Scikit learn provides two standards for transforming data (useful in different cases)
 # They are "Fit and Multiple Transform" and "Combined Fit-and-Transform"
 # Will go into more detail later
@@ -269,14 +278,10 @@ Methods for preparing data for modeling
 """
 
 def transform_data():
-	# Here we will standardize, normalize & scale the data the data
-	data = pd.read_csv(url, names = columns)
-	array = data.values
 
 	# Separate into input and output components
 	X = array[:, 0:8]
 	Y = array[:, 8]	
-
 
 	# Standardize
 	transform(X, "Standardized")

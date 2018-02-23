@@ -53,7 +53,13 @@ This is a work in progress; I initally split up everything into parts depending 
 
 However I will be splitting up by the different applications used, as this is better python practice.
 
-*Update:* I have now split up the code into different parts and have dedicated functions to doing different tasks. Please let me know if there is a better way of going about things.
+*Update:* I have now split up the code into different parts and have dedicated functions to doing different tasks. 
+
+Please let me know if there is a better way of going about things.
+
+*Update 2:* So I have tried added titles to each of the plots in Part 1, yet alot are not centered.
+
+If anyone knows why this is happening/would like to fix it please let me know or clone and make a pull request.
 
 ### Sources Cited
 

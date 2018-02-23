@@ -6,10 +6,8 @@
 ##
 #
 
-
 # The process from the other parts of the mini course were satisfactory for a good model selection
-# But there are other things that we could have done as well
-# Let's do them here
+# But there are other things that we could have done as well; let's do them here
 
 import numpy as np
 import pandas as pd
@@ -47,27 +45,27 @@ def cross_validation(name, model, X, Y, scoring):
 	except AttributeError:
 		print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
 
-def classification_report(name, model, labels, predictions):
+def classification_report(name, labels, predictions):
 	try:
 		class_report = metrics.classification_report(labels, predictions)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 	except:
 		print("The %s model is not compatible with the %s method" % (name, metrics.classification_report.__name__))
-def confusion_matrix(name, model, labels, predictions):
+def confusion_matrix(name, labels, predictions):
 	try:
 		conf_matrix = metrics.confusion_matrix(labels, predictions)
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 	except:
 		print("The %s model is not compatible with the %s method" % (name, metrics.confusion_matrix.__name__))
 
-def receiver_operating_characteristic(name, model, labels, predictions, data):
+def receiver_operating_characteristic(name, labels, predictions, datatype):
 	# ROC Curves
 	try:
 		fpr, tpr, threshold = metrics.roc_curve(y_true = labels, y_score = predictions, pos_label = 1)
 		roc_auc = metrics.auc(fpr, tpr)
 
-		if data is not None:
-			plt.title('%s ROC Curve: %s' % (data, name))
+		if datatype is not None:
+			plt.title('%s ROC Curve: %s' % (datatype, name))
 		else:
 			plt.title('ROC Curve: %s' % (name))
 		plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
@@ -101,6 +99,28 @@ def feature_importances(name, trained_model, X, Y):
 	except: 
 		print("The %s model is not compatible with the %s method" % (name, feature_importances_.__name__))
 
+def split_train_test(X, Y, test_size, random_state):
+	# Split data into training and testing
+	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
+		X, Y, test_size = test_size, random_state = random_state)
+
+	return X_train, X_test, Y_train, Y_test
+
+def model_metrics(name, model, X_train, X_test, Y_train, Y_test, datatype):
+	# Do all of the model metrics to save some room in script
+	print("%s data results:\n" % datatype)
+
+	# Fit model & make predictions
+	fitted_model = model.fit(X_train, Y_train)
+	Y_pred = fitted_model.predict(X_test)
+
+	# Classification report & Confusion Matrix (needs separate training and evaluation process)
+	classification_report(name, Y_test, Y_pred)
+	confusion_matrix(name, Y_test, Y_pred)
+
+	# Generate ROC Curves
+	receiver_operating_characteristic(name, Y_test, Y_pred, datatype)
+
 def stand_norm_test():
 	# Another method of model fitting involves using standardized data
 	# This works best for iterative models that converge to their fitted parameter values
@@ -115,12 +135,10 @@ def stand_norm_test():
 	X_norm = preprocessing.normalize(X)
 
 	# Train test split: standardized
-	X_train_stand, X_test_stand, Y_train_stand, Y_test_stand = model_selection.train_test_split(
-		X_stand, Y, test_size = 0.33, random_state = 42)	
+	X_train_stand, X_test_stand, Y_train_stand, Y_test_stand = split_train_test(X_stand, Y, 0.33, 142)
 
 	# Train test split: normalized
-	X_train_norm, X_test_norm, Y_train_norm, Y_test_norm = model_selection.train_test_split(
-		X_norm, Y, test_size = 0.33, random_state = 142)	
+	X_train_norm, X_test_norm, Y_train_norm, Y_test_norm = split_train_test(X_norm, Y, 0.33, 142)
 
 	# Models
 	models = []
@@ -131,36 +149,14 @@ def stand_norm_test():
 	for name, model in models:
 		# First with standardized data
 		# Different model metrics
-		print("Standardized data results:\n")
+		model_metrics(name, model, X_train_stand, X_test_stand, Y_train_stand, Y_test_stand, 'Standardized')
 		for scoring in ('accuracy', 'roc_auc'):
 			cross_validation(name, model, X_stand, Y, scoring)
 
-		# Confusion Matrix and Classification report
-		fitted_model_stand = model.fit(X_train_stand, Y_train_stand)
-		Y_pred_stand = fitted_model_stand.predict(X_test_stand)
-
-		# Classification report & Confusion Matrix (needs separate training and evaluation process)
-		classification_report(name, model, Y_test_stand, Y_pred_stand)
-		confusion_matrix(name, model, Y_test_stand, Y_pred_stand)
-
-		# Generate ROC Curves
-		receiver_operating_characteristic(name, model, Y_test_stand, Y_pred_stand, 'Standardized')
-
 		# Now with normalized data
-		print("Normalized data results:\n")
+		model_metrics(name, model, X_train_norm, X_test_norm, Y_train_norm, Y_test_norm, 'Normalized')
 		for scoring in ('accuracy', 'roc_auc'):
 			cross_validation(name, model, X_norm, Y, scoring)
-
-		# Confusion Matrix and Classification report
-		fitted_model_norm = model.fit(X_train_norm, Y_train_norm)
-		Y_pred_norm = fitted_model_norm.predict(X_test_norm)
-
-		# Classification report & Confusion Matrix (needs separate training and evaluation process)
-		classification_report(name, model, Y_test_norm, Y_pred_norm)
-		confusion_matrix(name, model, Y_test_norm, Y_pred_norm)
-
-		# Generate ROC Curves
-		receiver_operating_characteristic(name, model, Y_test_norm, Y_pred_norm, 'Normalized')
 
 def significant_variables():
 	# Another potential next step would be to try fitting data only on the most significant covariates
@@ -182,19 +178,9 @@ def significant_variables():
 	# Fit & evaluate models
 	for name, model in models:
 		# Different model metrics
+		model_metrics(name, model, X_train, X_test, Y_train, Y_test, None)
 		for scoring in ('accuracy', 'roc_auc'):
-			cross_validation(name, model, X, Y, scoring)	
-
-		# Fit model and make predictions
-		fitted_model = model.fit(X_train, Y_train)
-		Y_pred = model.predict(X_test)
-		
-		# Classification report & Confusion Matrix
-		classification_report(name, model, Y_test, Y_pred)
-		confusion_matrix(name, model, Y_test, Y_pred)
-
-		# ROC Curves
-		receiver_operating_characteristic(name, model, Y_test, Y_pred, None)
+			cross_validation(name, model, X, Y, scoring)
 
 	# Hmm accuracy and other metrics decrease slightly
 	# But the Logistic Regression model keeps chugging along!
@@ -225,7 +211,6 @@ def regression():
 		# Different model metrics
 		for scoring in ('neg_mean_squared_error', 'explained_variance'):
 			cross_validation(name, model, X, Y, scoring)
-
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:

@@ -7,7 +7,7 @@
 # The data used to train a model should not be then predicted using the model
 # Because the point is to make predictions on unseen data to see how well it generalizes
 # To do this we use resampling methods to split the data into training & testing sets
-# Then fit a model and evauate its performance
+# Then fit a model and evaluate its performance on the testing set
 
 """
 Methods for Re-sampling data
@@ -16,6 +16,7 @@ Methods for Re-sampling data
 3. Use leave one out cross-validation: 
 	a. Every data point is held out once with the rest of the data used to fit a model 
 	b. Thus n models created, with each trained on n - 1 data points
+	c. Better for smaller datasets
 
 Methods for Evaluating Algorithm Metrics
 1. Accuracy and LogLoss metrics for classdification
@@ -63,24 +64,25 @@ def cross_validation(name, model, X, Y, scoring):
 				(scoring, name, result.mean(), result.std()))
 	except AttributeError:
 		print("The %s model cannot perform cross validation with the %s metric" % (name, scoring))
+	"""
 	else:
 		except Exception as e:
 			print(e)
-
-def classification_report(name, model, labels, predictions):
+	"""
+def classification_report(name, labels, predictions):
 	try:
 		class_report = metrics.classification_report(labels, predictions)
 		print("\nClassification Report for %s model:\n" % (name), class_report)
 	except:
 		print("The %s model is not compatible with the %s method" % (name, metrics.classification_report.__name__))
-def confusion_matrix(name, model, labels, predictions):
+def confusion_matrix(name, labels, predictions):
 	try:
 		conf_matrix = metrics.confusion_matrix(labels, predictions)
 		print("\nConfusion Matrix for %s model:\n" % (name), conf_matrix)
 	except:
 		print("The %s model is not compatible with the %s method" % (name, metrics.confusion_matrix.__name__))
 
-def receiver_operating_characteristic(name, model, labels, predictions):
+def receiver_operating_characteristic(name, labels, predictions):
 	# ROC Curves
 	try:
 		fpr, tpr, threshold = metrics.roc_curve(y_true = labels, y_score = predictions, pos_label = 1)
@@ -115,8 +117,8 @@ def feature_importances(name, trained_model, X, Y):
 		plt.xticks(range(X.shape[1]), indices)
 		plt.xlim([-1, X.shape[1]])
 		plt.show()
-	except: 
-		print("The %s model is not compatible with the %s method" % (name, feature_importances_.__name__))
+	except AttributeError: 
+		print("The %s model has no attribute: %s" % (name, "feature_importances_"))
 
 def save_model(name, trained_model):
 	# Here we will use the "pickle" function to save the model
@@ -140,6 +142,7 @@ def model_score(name, trained_model, test_data, labels):
 		print("Score for %s model:\n" % name, result)
 	except:
 		print("The %s model is not compatible with the %s method" % (name, score.__name__))
+
 def spot_check():
 	# Here we will fit a Logistic Regression model using 10 fold cross validation
 	# As well as a Linear Discriminant Analysis model & compare
@@ -169,14 +172,11 @@ def spot_check():
 		Y_pred = fitted_model.predict(X_test)
 		
 		# Classification report & Confusion Matrix
-		classification_report(name, model, Y_test, Y_pred)
-		confusion_matrix(name, model, Y_test, Y_pred)
-
-		# Generate ROC Curves
-		receiver_operating_characteristic(name, model, Y_test, Y_pred)
+		classification_report(name, Y_test, Y_pred)
+		confusion_matrix(name, Y_test, Y_pred)
 
 	""" 
-	The best models from here were:
+	Best performing models:
 	1. Logistic Regression
 	2. Linear Discriminant Analysis
 	3. Ridge Classifier
@@ -188,13 +188,12 @@ def spot_check():
 ##
 #
 
-# The part before trained single models for evaluation
+# The previous part trained single models for evaluation
 # This is usually sufficient, but one can also combine predictions from multiple equivalent models
 # Some models are built in with this capacity, e.g:
 # Random Forest for bagging, Stochastic Gradient Boosting for Boosting
 # Another type of ensemble is called voting
-# Where the predictions from multiple different models are combined
-# This will be done in the next part
+# Where the predictions from multiple different models are combined (Done in next part)
 
 def ensemble_models():
 	# Here let's implement some ensemble methods to potentially improve accuracy
@@ -222,14 +221,8 @@ def ensemble_models():
 		Y_pred = fitted_model.predict(X_test)
 		
 		# Classification report & Confusion Matrix
-		classification_report(name, model, Y_test, Y_pred)
-		confusion_matrix(name, model, Y_test, Y_pred)
-
-		# Generate ROC Curves
-		receiver_operating_characteristic(name, model, Y_test, Y_pred)
-
-		# Feature importances
-		feature_importances(name, fitted_model, X, Y)
+		classification_report(name, Y_test, Y_pred)
+		confusion_matrix(name, Y_test, Y_pred)		
 
 	"""
 	All of them achieve pretty much the same results as the simpler models
@@ -246,9 +239,9 @@ def ensemble_models():
 
 # Technically this is an emsemble method, but I wanted to include this in a separate part
 # In order to see the results of the initial model fitting
-# And gather models from different types that did well
-# Because model diversity is key here
-# The point of combining models is to reduce generalization error
+# And gather the models that did well
+# Model diversity is key here
+# Because the point of combining models is to reduce generalization error
 # And similar models will not achieve that
 # There are different voting methods as well (hard vs soft)
 # All will be attempted
@@ -256,7 +249,6 @@ def ensemble_models():
 def voting_ensemble():
 	# Last but not least, let's combine some of these models 
 	# To try for better predictive performance
-
 	n_trees = 100
 	models = []
 
@@ -264,20 +256,14 @@ def voting_ensemble():
 	# Number 1: Hard Vote (Predicted class labels used for majority rule voting)
 	models.append(('Voting Classifier 1', ensemble.VotingClassifier(estimators = [
 		('lr', linear_model.LogisticRegression(random_state = 1)),
-		#('lda', discriminant_analysis.LinearDiscriminantAnalysis()),
 		('gbm', ensemble.GradientBoostingClassifier(random_state = 1)),
-		#('rf', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3))
-		#('rr', linear_model.RidgeClassifier(random_state = 1))
 		], voting = 'hard')))
 
 	# Number 2: Soft Vote (Argmax of sums of predicted probabilities used)
 	# Recommended for ensemble of well-calibrated classifiers
 	models.append(('Voting Classifier 2', ensemble.VotingClassifier(estimators = [
-		#('lr', linear_model.LogisticRegression(random_state = 1)),
 		('lda', discriminant_analysis.LinearDiscriminantAnalysis()),
-		#('gbm', ensemble.GradientBoostingClassifier(random_state = 1)),
 		('rf', ensemble.RandomForestClassifier(random_state = 1, n_estimators = n_trees, max_features = 3))
-		#('rr', linear_model.RidgeClassifier(random_state = 1))
 		], voting = 'soft')))
 
 	# Number 3: Soft Vote with weights
@@ -289,17 +275,13 @@ def voting_ensemble():
 		for scoring in ('accuracy', 'roc_auc'):
 			cross_validation(name, model, X, Y, scoring)
 
-
 		# Fit model and make predictions
 		fitted_model = model.fit(X_train, Y_train)
 		Y_pred = fitted_model.predict(X_test)
 		
 		# Classification report & Confusion Matrix (needs separate training and evaluation process)
-		classification_report(name, model, Y_test, Y_pred)
-		confusion_matrix(name, model, Y_test, Y_pred)
-
-		# Generate ROC Curves
-		receiver_operating_characteristic(name, model, Y_test, Y_pred)
+		classification_report(name, Y_test, Y_pred)
+		confusion_matrix(name, Y_test, Y_pred)
 
 #
 ##
@@ -309,9 +291,10 @@ def voting_ensemble():
 
 # Now that we have the results from many different model evalutions and testing, 
 # Let's pick 1-2 final ones to save
-# I would like to do one linear and one non-linear model 
+# I will do one linear and one non-linear model 
 # Because the training time difference is negligible
 # Let's do Logistic Regression and a Random Forest
+# Here we will do extra stuff since this is the final model chose
 def final_models():
 
 	n_trees = 100
@@ -332,8 +315,14 @@ def final_models():
 
 		# Classification report & Confusion Matrix (needs separate training and evaluation process)
 		Y_pred = loaded_model.predict(X_test)
-		classification_report(name, model, Y_test, Y_pred)
-		confusion_matrix(name, model, Y_test, Y_pred)
+		classification_report(name, Y_test, Y_pred)
+		confusion_matrix(name, Y_test, Y_pred)
+
+		# Generate ROC Curves
+		receiver_operating_characteristic(name, Y_test, Y_pred)
+
+		# Feature importances
+		feature_importances(name, loaded_model, X, Y)
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
