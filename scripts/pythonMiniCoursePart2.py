@@ -35,7 +35,7 @@ from matplotlib import pyplot as plt
 import pickle
 
 # Define url and columns
-url = "https://goo.gl/vhm1eU"
+url = 'https://goo.gl/bDdBiA'
 columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 # Read in data and split up so we don't do this over and over
