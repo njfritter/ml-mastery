@@ -48,7 +48,6 @@ data = pd.read_csv(diabetes_data, names = diabetes_columns)
 array = data.values
 
 
-
 # Describe the data
 def describe_data(data):
 	'''
