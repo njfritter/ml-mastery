@@ -16,9 +16,11 @@ This mini-course dealt mainly with the "Pimas Indians Diabetes" dataset from the
 UCI Machine Learning Repository (the raw data from Jason Brownlee's github can be found 
 [here](https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv); unfortunately it does not look like the data is available on the UCI website [due to permission restrictions](https://archive.ics.uci.edu/ml/machine-learning-databases/pima-indians-diabetes/)). Luckily, this Kaggle website happened to have more information on it [here](https://www.kaggle.com/uciml/pima-indians-diabetes-database). 
 
+One of the parts also used the Boston Housing Data, which can be found [here](https://archive.ics.uci.edu/ml/machine-learning-databases/housing/)
+
 The data has various fields relating to health (age, number of pregnancies the patient has had, Body Mass Index (BMI), insulin level, etc.), and in the course we use these fields to attempt to predict the target variable: an indicator variable showing 0 if the patient did not end up with diabetes, and 1 if they did. Since the target variable has only two outcomes (diabetes & no diabetes), this is a "classification" problem and the models used are tailored as such.
 
-I am lucky that there was documentation of the data listed somewhere else. Domain knowledge (knowledge about the data due to first hand experience) is an important part of data analysis, so any other projects I do will make sure to do this. If anyone reading this has any supplemental information on the data, please let me know. 
+I have to point out that I am lucky that there was documentation of the data listed somewhere else. Domain knowledge (knowledge about the data due to first hand experience) is an important part of data analysis, so any other projects I do will make sure to do this. If anyone reading this has any supplemental information on the data, please let me know. 
 
 I have added in my own comments, methods, and explanations of my thought process. 
 Feel free to clone the repo, make a branch, leave comments or contribute in any way you'd like.
