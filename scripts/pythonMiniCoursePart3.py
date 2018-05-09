@@ -163,12 +163,11 @@ def significant_variables():
 	# In this case, variables 1, 5, 6, and 7 ("preg", "test", "mass", "pedi")
 	# Let's fit some models using only these variables
 	# We already have X & Y, but need to separate out the necessary variables
-	X = array[:, (0,4,5,6)]
-	Y = array[:, 8]
+	X_sig = array[:, (0,4,5,6)]
+	Y_sig = array[:, 8]
 
 	# Train test split for evaluation metrics
-	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
-	X, Y, test_size = 0.33, random_state = 42)
+	X_train_sig, X_test_sig, Y_train_sig, Y_test_sig = split_train_test(X_sig, Y_sig, 0.33, 142)
 
 	n_trees = 100
 	models = np.empty([2, 2], dtype = 'object')
@@ -178,9 +177,9 @@ def significant_variables():
 	# Fit & evaluate models
 	for name, model in models:
 		# Different model metrics
-		model_metrics(name, model, X_train, X_test, Y_train, Y_test, None)
+		model_metrics(name, model, X_train_sig, X_test_sig, Y_train_sig, Y_test_sig, None)
 		for scoring in ('accuracy', 'roc_auc'):
-			cross_validation(name, model, X, Y, scoring)
+			cross_validation(name, model, X_sig, Y_sig, scoring)
 
 	# Hmm accuracy and other metrics decrease slightly
 	# But the Logistic Regression model keeps chugging along!

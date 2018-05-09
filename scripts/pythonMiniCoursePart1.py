@@ -1,15 +1,18 @@
-# ML Mastery Python MiniCourse
-# General style for python:
-# snake_case for functions and variables, PascalCase for classes
+#!/usr/bin/env python3
 
-#
-##
-###
-#### PART ONE: Numpy and Pandas Practice
-###
-##
-#
+'''
+Mastering ML Python Mini Course
+Inspired by the project here: 
+https://s3.amazonaws.com/MLMastery/machine_learning_mastery_with_python_mini_course.pdf?__s=mxhvphowryg2sfmzus2q
+By Nathan Fritter
+Project will soon be found at: 
+https://www.inertia7.com/projects/
+General style for python:
+snake_case for functions and variables, PascalCase for classes
+'''
 
+
+# Import packages
 import numpy as np
 import pandas as pd
 import sys
@@ -26,53 +29,46 @@ from sklearn import preprocessing
 url = "https://goo.gl/vhm1eU"
 columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
-# Read in data
-data = pd.read_csv(url, names = columns)
+# Define data and columns
+diabetes_data = 'data/diabetes.csv'
+diabetes_columns = np.array(['Pregnancies', 'Glucose', 'BloodPressure', 'SkinThickness', 
+	'Insulin', 'BMI', 'DiabetesPedigreeFunction', 'Age', 'Outcome'])
+
+# Read in data using url
+#data = pd.read_csv(url, names = columns)
+
+# Read in using csv file
+data = pd.read_csv(diabetes_data, names = diabetes_columns)
 array = data.values
 
-def basic_output(data):
+#
+##
+### Part One: Loading in data from CSV (Pima Indians onset of diabetes dataset, UCI ML repo)
+##
+#
+
+
+def describe(data):
+	'''
+	This function will output:
+	- Datatype
+	- Shape
+	- Summary statistics (?)
+	'''
 	try:
 		print("\nData type encountered: %s\n" % (type(data)))
 		print("\nThe shape of my %s: %s\n" % (type(data) , data.shape))
 		print("Data below:\n", data)
+		print(data.describe())
 
 	except TypeError:
 		print("Incompatible data type")	
-def read_data(url, method):
 
-	# Method one: Pandas read_csv() function
-	if method == 1:
-		print("\nLoading in data via the read_csv method in pandas using a url\n")
-		data = pd.read_csv(url, names = columns)
-
-	# Method two: use Numpy's loadtxt() method
-	# Make sure to specify the delimiter, otherwise it throws an error
-	if method == 2:
-		print("\nLoading in data via the loadtxt method in numpy using a url\n")
-		data = np.loadtxt(url, dtype = float, delimiter = ',')
-
-	# Method three: Load in using csv.reader() function
-	# Since the original method can only read physical csvs
-	# We need to include the urllib.request.urlopen() method for the url
-	# THEN, to properly load the data, we need to create a generator object using codecs
-	# Then convert to a list, THEN to a DataFrame in pandas. Having fun yet?
-	if method == 3:
-		print("\nLoading in data via the csv.reader() method using a url\n")
-		response = urllib.request.urlopen(url)
-		data = csv.reader(codecs.iterdecode(response, 'utf-8'))
-		data = pd.DataFrame(list(data), columns = columns)
-
-	print("\nHere is the shape of the data for Method %s:\n" %(method), data.shape)
-
-	# For methods 1 and 3
-	try:
-		print("\nHere is the head of the data for Method %s:\n" %(method), data.head(10))
-		print("\nHere is the tail of the data for Method %s:\n" %(method), data.tail(10))
-
-	# For method 2
-	except AttributeError:	
-		print("\nHere is the head of the data for Method %s:\n" %(method), data[0:9,])
-		print("\nHere is the tail of the data for Method %s:\n" %(method), data[0:9,])
+#
+##
+### Part Two: Plot data using Seaborn and other methods
+##
+#
 
 def plot_data_seaborn(data, method):
 
@@ -162,36 +158,7 @@ def transform(data, method):
 	except ValueError:
 		print("Invalid method entered")
 
-def the_basics():
-	my_array = np.array([[1, 2, 3], [4, 5, 6]])
-	row_names = np.array(['a', 'b'])
-	col_names = np.array(['one', 'two', 'three'])
-	my_df = pd.DataFrame(my_array, index = row_names, columns = col_names)
-	basic_output(my_df)
 
-	my_series = np.array([7, 8, 9])
-	series_index = np.array(['bears', 'beets', 'battlestar galatica'])
-	my_pd_series = pd.Series(my_series, index = series_index)
-	basic_output(my_pd_series)
-
-#
-##
-###
-#### PART TWO: Loading in data from CSV (Pima Indians onset of diabetes dataset, UCI ML repo)
-###
-##
-#
-
-def load_data():
-
-	# Method 1
-	read_data(url, 1)
-
-	# Method 2
-	read_data(url, 2)
-
-	# Method 3
-	read_data(url, 3)
 
 #
 ##
@@ -210,7 +177,6 @@ def explore_data():
 
 	# Remove class: Not necessary or meaningful here
 	# data = data.iloc[:, 0:8]
-	description = data.describe()
 	data_types = data.dtypes
 	correlation = data.corr(method = 'pearson')
 	
@@ -297,12 +263,16 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         if sys.argv[1] == 'basic':
             the_basics()
-        elif sys.argv[1] == 'load':
-            load_data()
+        elif sys.argv[1] == 'describe':
+            describe_data()
         elif sys.argv[1] == 'explore':
             explore_data()
         elif sys.argv[1] == 'visualize':
             visualize_data()
         elif sys.argv[1] == 'transform':
             transform_data()
+        else:
+        	print("Incorrect keyword; please enter a valid keyword.")
+    else:
+    	print("Incorrect number of keywords; please enter one keyword after the program name.")
 
