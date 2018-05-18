@@ -12,20 +12,30 @@
 # Project will soon be found at: 
 #
 # https://www.inertia7.com/projects/
+#
+# General style for python:
+#
+# snake_case for functions and variables, PascalCase for classes
 ###############################
 
+# Welcome to my repo for the Mastering Machine Learning Python Mini Course
+# Here I will be going through each part of the course
+# So you can get a feel of the different parts
 
-#
-##
-### SECTION: Basics of pandas and numpy (main data manipulation packages in python)
-##
-#
 
-# Import packages
+# Import packages before anything else
 import numpy as np
 import pandas as pd
 
+# Lesson 1: Numpy and Pandas Practice
+
 def basic_output(data):
+	'''
+	This function will output:
+	- Datatype
+	- Shape
+	- Summary statistics (?)
+	'''
 	try:
 		print("\nData type encountered: %s\n" % (type(data)))
 		print("\nThe shape of my %s: %s\n" % (type(data) , data.shape))
@@ -33,6 +43,10 @@ def basic_output(data):
 
 	except TypeError:
 		print("Incompatible data type")	
+
+print("########################################")
+print("This is Part 1: Getting Around in Python")
+print("########################################")
 
 my_array = np.array([[1, 2, 3], [4, 5, 6]])
 row_names = np.array(['a', 'b'])

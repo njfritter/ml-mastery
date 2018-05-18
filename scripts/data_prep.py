@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 
-'''
-Mastering ML Python Mini Course
-Inspired by the project here: 
-https://s3.amazonaws.com/MLMastery/machine_learning_mastery_with_python_mini_course.pdf?__s=mxhvphowryg2sfmzus2q
-By Nathan Fritter
-Project will soon be found at: 
-https://www.inertia7.com/projects/
-General style for python:
-snake_case for functions and variables, PascalCase for classes
-'''
+###############################
+# Mastering ML Python Mini Course
+#
+# Inspired by the project here: 
+#
+# https://s3.amazonaws.com/MLMastery/machine_learning_mastery_with_python_mini_course.pdf?__s=mxhvphowryg2sfmzus2q
+#
+# By Nathan Fritter
+#
+# Project will soon be found at: 
+#
+# https://www.inertia7.com/projects/
+###############################
 
 # Import packages
 import numpy as np

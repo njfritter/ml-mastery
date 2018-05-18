@@ -43,14 +43,14 @@ Y = array[:, 13]
 def head_tail_shape(data, method):
 	try:
 		# pandas.read_csv() & csv.reader() method
-		print("\nHere is the head of the data for the %s method %s:\n" %(method), data.head(10))
-		print("\nHere is the tail of the data for the %s method %s:\n" %(method), data.tail(10))
-		print("\nHere is the shape of the data for Method %s:\n" %(method), data.shape)
+		print("\nHere is the head of the data for the %s method:\n" %(method), data.head(10))
+		print("\nHere is the tail of the data for the %s method:\n" %(method), data.tail(10))
+		print("\nHere is the shape of the data for the %s Method:\n" %(method), data.shape)
 	except AttributeError:
 		# numpy.loadtxt() method
-		print("\nHere is the head of the data for %s method :\n" %(method), data[0:9,])
-		print("\nHere is the tail of the data for %s method :\n" %(method), data[0:9,])
-		print("\nHere is the shape of the data for Method %s:\n" %(method), data.shape)
+		print("\nHere is the head of the data for the %s method:\n" %(method), data[0:9,])
+		print("\nHere is the tail of the data for the %s method:\n" %(method), data[0:9,])
+		print("\nHere is the shape of the data for the %s Method:\n" %(method), data.shape)
 
 def read_data(src):
 
@@ -67,24 +67,27 @@ def read_data(src):
 	'''
 
 	# Method 1
-	print("\nLoading in data via the %s method in pandas using a url\n" % (method))
-	data = pd.read_csv(url, names = columns)
+	method = "pandas.read_csv()"
+	print("\nLoading in data via the %s method using a url\n" % method)
+	data = pd.read_csv(url, delim_whitespace = True, names = columns)
 
-	head_tail(data, "pandas.read_csv()")
+	head_tail_shape(data, method)
 
 	# Method 2
-	print("\nLoading in data via the loadtxt method in numpy using a url\n")
-	data = np.loadtxt(url, dtype = float, delimiter = ',')
+	method = "numpy.loadtxt()"
+	print("\nLoading in data via the %s method using a url\n" % method)
+	data = np.loadtxt(url, dtype = float)
 
-	head_tail(data, "numpy.loadtxt()")
+	head_tail_shape(data, method)
 
 	# Method 3
-	print("\nLoading in data via the csv.reader() method using a url\n")
+	method = "csv.reader()"
+	print("\nLoading in data via the %s method using a url\n" % method)
 	response = urllib.request.urlopen(url)
 	data = csv.reader(codecs.iterdecode(response, 'utf-8'))
 	data = pd.DataFrame(list(data), columns = columns)
 
-	head_tail(data, "csv.reader()")
+	head_tail_shape(data, method)
 
 def cross_validation(name, model, X, Y, scoring):
 	# Automatically choosing 10-fold cross validation
@@ -131,8 +134,8 @@ def regression():
 
 if __name__ == '__main__':
     if len(sys.argv) == 2:
-        if sys.argv[1] == 'test':
-        	stand_norm_test()
+        if sys.argv[1] == 'read':
+        	read_data(url)
         elif sys.argv[1] == 'sig':
         	significant_variables()
         elif sys.argv[1] == 'reg':
