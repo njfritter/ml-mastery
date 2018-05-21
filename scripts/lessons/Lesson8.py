@@ -25,7 +25,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.model_selection import cross_val_score, KFold
-from sklearn.metrics import classification_report, confusion_matrix
 # Define url and columns
 url = 'https://goo.gl/bDdBiA'
 columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
@@ -53,6 +52,10 @@ In this I will utilize k-fold cross validation
 in tandem with different model metrics and evaluation methods.
 As some model metrics may not tell the whole story
 (i.e. accuracy not detailing False Positive vs True Positive, etc.)
+The different model metrics to be used:
+- Accuracy
+- AUC (Area under Curve; measures True Positive versus False Positive rate)
+- Log Loss 
 '''
 
 # Divide data into attributes and predictor

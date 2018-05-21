@@ -49,7 +49,8 @@ The candidates for further analysis from the previous Lesson:
 - Gradient Boosted Machine
 
 In this I will utilize k-fold cross validation to sift through the remaining algorithms
-Will; still use accuracy as the main evaluation metric
+I will still use accuracy as the main evaluation metric.
+
 '''
 
 # Divide data into attributes and predictor
@@ -88,5 +89,5 @@ Looks like all of the models continue to perform well. Results:
 - Random Forest: 74.077% (+\-5.791%)
 - Gradient Boosted Machine: 76.950% (+\-5.710%)
 
-Thus they all move onto the next stage, which will look at more model metrics and evaluation
+Now we have a more clear view of the qaccuracy 
 '''
