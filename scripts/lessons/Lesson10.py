@@ -33,6 +33,10 @@ columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age
 data = read_csv(url, names = columns)
 array = data.values
 
+# Divide data into attributes and predictor
+X = array[:, 0:8]
+y = array[:, 8]
+
 ####################################
 # Lesson 10: Improve Accuracy with Algorithm Tuning
 ####################################
@@ -54,15 +58,30 @@ For example, the Gradient Boosted Machine we will be training has these paramete
 - max_depth: maximum number of nodes of each tree
 
 There are more, but these are the main ones I will be tuning.
+Other algorithms may have more or less to tune; the simpler the model,
+the less parameters there are to tune.
 
+The golden rule here is Occam's Razor:
+The hypothesis (and in our case, model) with the least number of assumptions
+(and again in our case, model parameters) is usually correct
 '''
 
-# Divide data into attributes and predictor
-X = array[:, 0:8]
-y = array[:, 8]
-
-# Train test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.30, random_state = 42)
+# Define a function to do parameter tuning
+# Since we will be doing it multiple times
+def parameter_tuning(model, parameters, attributes, labels):
+    grid_model = GridSearchCV(estimator = model, param_grid = parameters)
+    grid_model.fit(attributes, labels)
+    
+    #print("\nCross validation results for Grid Search", grid_model.cv_results_)
+    print("\nBest score in Grid Search:\n", grid_model.best_score_)
+    print("\nBest set of parameters in Grid Search:\n", grid_model.best_estimator_)
+    
+    rand_model = RandomizedSearchCV(estimator = model, param_distributions = parameters)
+    rand_model.fit(attributes, labels)
+    
+    #print("\nCross validation results", rand_model.cv_results_)
+    print("\nBest score in Randomized Search:\n", rand_model.best_score_)
+    print("\nBest set of parameters in Randomized Search:\n", rand_model.best_estimator_)
 
 # Now one at a time, I will be declaring the model parameters to tune
 # And then running a Grid Search to determine the best combination
@@ -80,23 +99,27 @@ grid_param_lr = {
 }
 
 # First try Logistic Regression model
-model_lr = LogisticRegression(random_state = 1, verbose = 5)
+model_lr = LogisticRegression(random_state = 1)
+parameter_tuning(model_lr, grid_param_lr, X, y)
 
-grid_lr = GridSearchCV(estimator = model_lr, param_grid = grid_param_lr)
-grid_lr.fit(X, y)
-#print(grid_lr.best_score_)
-#print(grid_lr.best_estimator_)
-print(grid_lr.cv_results_)
+# Parameters for Linear Discriminant Analysis
+grid_param_lda = {
+	'solver': ['svd', 'lsqr', 'eigen'],
+	'shrinkage': [None, 'auto', 0.25, 0.5, 0.75, 1]
+}
 
-random_lr = RandomizedSearchCV(estimator = model_lr, param_distributions = grid_param_lr)
-random_lr.fit(X, y)
-#print(random_lr.best_score_)
-#print(random_lr.best_estimator_)
-print(random_lr.cv_results_)
+# Now Linear Discriminant Analysis
+model_lda = LinearDiscriminantAnalysis()
+parameter_tuning(model_lda, grid_param_lda, X, y)
 
-# Will try the other methods later
+# Parameters for Gradient Boosted Machine
+grid_param_gbm = {
+	'loss': ['deviance', 'exponential'],
+	'learning_rate': (0.5, 0.1, 0.05, 0.01),
+	'n_estimators': (50, 100, 250, 500),
+	'max_depth': (2, 3, 4, 5)
+}
 
-"""
-models[1] = ['Linear Discriminant Analysis', LinearDiscriminantAnalysis()]	
-models[2] = ['Gradient Boosted Machine', GradientBoostingClassifier(random_state = 1)]
-"""
+# And lastly Gradient Boosted Machine
+model_gbm = GradientBoostingClassifier(random_state = 1)
+parameter_tuning(model_gbm, grid_param_gbm, X, y)
