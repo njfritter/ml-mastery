@@ -24,10 +24,11 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 from matplotlib import pyplot as plt
 import seaborn as sns
-from sklearn import preprocessing
+from sklearn import (model_selection, linear_model, metrics, discriminant_analysis,
+neural_network, tree, svm, naive_bayes, ensemble, preprocessing)
 
 # Define url and columns
-url = "https://goo.gl/vhm1eU"
+url = 'https://goo.gl/bDdBiA'
 columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 # Define data and columns
