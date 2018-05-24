@@ -121,6 +121,7 @@ for name, model in models:
 '''
 Now we have more in depth metrics to make comparisons and inferences
 For example:
-- The confusion matrix 
+- The confusion matrix shows more in depth the various classes being predicted correctly or incorrectly
+- I.e. 
 
 '''

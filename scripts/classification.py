@@ -41,8 +41,9 @@ Methods for Evaluating Algorithm Metrics
 import numpy as np
 import pandas as pd
 import sys
+import urllib.request as req
 from sklearn import (model_selection, linear_model, metrics, discriminant_analysis,
-neural_network, tree, svm, naive_bayes, ensemble)
+neural_network, tree, svm, naive_bayes, ensemble, preprocessing)
 import matplotlib as mpl
 mpl.use('TkAgg')
 from matplotlib import pyplot as plt
@@ -53,7 +54,7 @@ url = 'https://goo.gl/bDdBiA'
 columns = np.array(['preg', 'plas', 'pres', 'skin', 'test', 'mass', 'pedi', 'age', 'class'])
 
 # Read in data and split up so we don't do this over and over
-data = pd.read_csv(url, names = columns)
+data = pd.read_csv(req.urlopen(url), names = columns)
 array = data.values
 
 # Separate into input and output components
@@ -96,13 +97,17 @@ def confusion_matrix(name, labels, predictions):
 	except:
 		print("The %s model is not compatible with the %s method" % (name, metrics.confusion_matrix.__name__))
 
-def receiver_operating_characteristic(name, labels, predictions):
+def receiver_operating_characteristic(name, labels, predictions, datatype):
+
 	# ROC Curves
 	try:
 		fpr, tpr, threshold = metrics.roc_curve(y_true = labels, y_score = predictions, pos_label = 1)
 		roc_auc = metrics.auc(fpr, tpr)
-		
-		plt.title('ROC Curve: %s' % name)
+
+		if datatype is not None:
+			plt.title('%s ROC Curve: %s' % (datatype, name))
+		else:
+			plt.title('ROC Curve: %s' % (name))
 		plt.plot(fpr, tpr, 'b', label = 'AUC = %0.2f' % roc_auc)
 		plt.legend(loc = 'lower right')
 		plt.plot([0,1], [0,1], 'r--') # Add diagonal line
@@ -333,7 +338,7 @@ def final_models():
 		confusion_matrix(name, Y_test, Y_pred)
 
 		# Generate ROC Curves
-		receiver_operating_characteristic(name, Y_test, Y_pred)
+		receiver_operating_characteristic(name, Y_test, Y_pred, None)
 
 		# Feature importances
 		feature_importances(name, loaded_model, X, Y)
@@ -352,6 +357,13 @@ def model_metrics(name, model, X_train, X_test, Y_train, Y_test, datatype):
 
 	# Generate ROC Curves
 	receiver_operating_characteristic(name, Y_test, Y_pred, datatype)
+
+def split_train_test(X, Y, test_size, random_state):
+	# Split data into training and testing
+	X_train, X_test, Y_train, Y_test = model_selection.train_test_split(
+		X, Y, test_size = test_size, random_state = random_state)
+
+	return X_train, X_test, Y_train, Y_test
 
 def stand_norm_test():
 	# Another method of model fitting involves using standardized data
