@@ -21,8 +21,6 @@ from urllib.request import urlopen
 from urllib.error import HTTPError
 from sklearn.preprocessing import normalize, StandardScaler, scale, MinMaxScaler
 import helper_functions as hf
-#import (model_selection, linear_model, metrics, discriminant_analysis,
-#neural_network, tree, svm, naive_bayes, ensemble, preprocessing)
 
 # The mini course used a url, however it got taken down and replaced
 # So we'll try the link first, then default to a physical CSV if the url fails
